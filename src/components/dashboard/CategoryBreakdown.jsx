@@ -31,7 +31,8 @@ const CATEGORY_ICONS = {
 
 const CategoryBreakdown = ({ transactions = [] }) => {
 
-    const expenses = transactions.filter(tran => tran.type === 'expenses');
+    const expenses = transactions.filter(tran => tran.type === 'expense'
+    );
     const totalExpenses = expenses.reduce((sum, trans) => sum + Math.abs(trans.amount), 0);
 
     const categoryTotals = expenses.reduce((acc, trans) => {

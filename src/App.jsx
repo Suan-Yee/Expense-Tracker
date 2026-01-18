@@ -1,34 +1,44 @@
-import { useState } from 'react'
-import Dashboard from './pages/Dashboard'
-import BudgetPieChart from './components/dashboard/BudgetPieChart'
 import CategoryBreakdown from './components/dashboard/CategoryBreakdown'
+import MonthlyComparison from './components/dashboard/MonthlyComparison'
 
-// Mock transactions data for testing
-const mockTransactions = [
-  { id: 1, type: 'expenses', category: 'rent', amount: 1200, date: '2024-01-15', description: 'Monthly rent' },
-  { id: 2, type: 'expenses', category: 'groceries', amount: 350, date: '2024-01-16', description: 'Weekly groceries' },
-  { id: 3, type: 'expenses', category: 'utilities', amount: 150, date: '2024-01-17', description: 'Electricity bill' },
-  { id: 4, type: 'expenses', category: 'transport', amount: 120, date: '2024-01-18', description: 'Gas and parking' },
-  { id: 5, type: 'expenses', category: 'dining', amount: 85, date: '2024-01-19', description: 'Restaurant dinner' },
-  { id: 6, type: 'expenses', category: 'entertainment', amount: 45, date: '2024-01-20', description: 'Movie tickets' },
-  { id: 7, type: 'expenses', category: 'groceries', amount: 280, date: '2024-01-21', description: 'Grocery shopping' },
-  { id: 8, type: 'expenses', category: 'health', amount: 200, date: '2024-01-22', description: 'Doctor visit' },
-  { id: 9, type: 'expenses', category: 'transport', amount: 95, date: '2024-01-23', description: 'Uber rides' },
-  { id: 10, type: 'expenses', category: 'dining', amount: 120, date: '2024-01-24', description: 'Lunch meetings' },
-  { id: 11, type: 'expenses', category: 'entertainment', amount: 60, date: '2024-01-25', description: 'Concert tickets' },
-  { id: 12, type: 'expenses', category: 'other', amount: 75, date: '2024-01-26', description: 'Miscellaneous' },
-  { id: 13, type: 'income', category: 'salary', amount: 5000, date: '2024-01-01', description: 'Monthly salary' },
-  { id: 14, type: 'income', category: 'freelance', amount: 800, date: '2024-01-10', description: 'Freelance work' },
-];
+// Example data for testing components
+const mockLastMonthTransactions = [
+  { id: 1, type: 'expense', category: 'rent', amount: -1200, date: '2024-01-03', description: 'Monthly rent' },
+  { id: 2, type: 'expense', category: 'groceries', amount: -180, date: '2024-01-06', description: 'Groceries' },
+  { id: 3, type: 'expense', category: 'groceries', amount: -240, date: '2024-01-13', description: 'Groceries' },
+  { id: 4, type: 'expense', category: 'utilities', amount: -165, date: '2024-01-14', description: 'Electricity' },
+  { id: 5, type: 'expense', category: 'transport', amount: -95, date: '2024-01-16', description: 'Fuel' },
+  { id: 6, type: 'expense', category: 'dining', amount: -120, date: '2024-01-18', description: 'Dining out' },
+  { id: 7, type: 'expense', category: 'entertainment', amount: -75, date: '2024-01-21', description: 'Movies' },
+  { id: 8, type: 'expense', category: 'health', amount: -40, date: '2024-01-25', description: 'Pharmacy' },
+  { id: 9, type: 'income', category: 'salary', amount: 5000, date: '2024-01-01', description: 'Monthly salary' },
+]
+
+const mockCurrentMonthTransactions = [
+  { id: 101, type: 'expense', category: 'rent', amount: -1250, date: '2024-02-03', description: 'Monthly rent' },
+  { id: 102, type: 'expense', category: 'groceries', amount: -160, date: '2024-02-05', description: 'Groceries' },
+  { id: 103, type: 'expense', category: 'groceries', amount: -210, date: '2024-02-12', description: 'Groceries' },
+  { id: 104, type: 'expense', category: 'utilities', amount: -140, date: '2024-02-14', description: 'Electricity' },
+  { id: 105, type: 'expense', category: 'transport', amount: -60, date: '2024-02-15', description: 'Transit' },
+  { id: 106, type: 'expense', category: 'dining', amount: -145, date: '2024-02-18', description: 'Dining out' },
+  { id: 107, type: 'expense', category: 'entertainment', amount: -30, date: '2024-02-19', description: 'Streaming' },
+  { id: 108, type: 'expense', category: 'other', amount: -55, date: '2024-02-22', description: 'Misc' },
+  { id: 109, type: 'income', category: 'salary', amount: 5000, date: '2024-02-01', description: 'Monthly salary' },
+]
+
+const mockTransactions = [...mockLastMonthTransactions, ...mockCurrentMonthTransactions]
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <div className="app">
       <h1 className='bg-red-500'>Expense Tracker</h1>
-      {/* <BudgetPieChart /> */}
-      <CategoryBreakdown transactions={mockTransactions} />
+      <div className="grid gap-6 p-6">
+        <MonthlyComparison
+          currentMonthTransactions={mockCurrentMonthTransactions}
+          lastMonthTransactions={mockLastMonthTransactions}
+        />
+        <CategoryBreakdown transactions={mockTransactions} />
+      </div>
     </div>
   )
 }
