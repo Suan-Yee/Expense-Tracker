@@ -1,5 +1,6 @@
 import CategoryBreakdown from './components/dashboard/CategoryBreakdown'
 import MonthlyComparison from './components/dashboard/MonthlyComparison'
+import OverspendingAlerts from './components/dashboard/OverspendingAlerts'
 
 // Example data for testing components
 const mockLastMonthTransactions = [
@@ -28,11 +29,28 @@ const mockCurrentMonthTransactions = [
 
 const mockTransactions = [...mockLastMonthTransactions, ...mockCurrentMonthTransactions]
 
+const mockBudgets = [
+  { category: 'rent', limit: 1200 },
+  { category: 'groceries', limit: 450 },
+  { category: 'utilities', limit: 150 },
+  { category: 'dining', limit: 100 },
+  { category: 'entertainment', limit: 40 },
+  { category: 'other', limit: 50 },
+  { category: 'transport', limit: 100 },
+  { category: 'health', limit: 100 },
+]
+
 function App() {
   return (
     <div className="app">
       <h1 className='bg-red-500'>Expense Tracker</h1>
       <div className="grid gap-6 p-6">
+
+        <OverspendingAlerts
+          transactions={mockCurrentMonthTransactions}
+          budgets={mockBudgets}
+        />
+        
         <MonthlyComparison
           currentMonthTransactions={mockCurrentMonthTransactions}
           lastMonthTransactions={mockLastMonthTransactions}
