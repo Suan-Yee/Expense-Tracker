@@ -1,6 +1,7 @@
 import CategoryBreakdown from './components/dashboard/CategoryBreakdown'
 import MonthlyComparison from './components/dashboard/MonthlyComparison'
 import OverspendingAlerts from './components/dashboard/OverspendingAlerts'
+import SavingGoals from './components/dashboard/SavingGoals'
 
 // Example data for testing components
 const mockLastMonthTransactions = [
@@ -40,22 +41,55 @@ const mockBudgets = [
   { category: 'health', limit: 100 },
 ]
 
+const mockSavingsGoals = [
+  {
+    id: 'goal-1',
+    name: 'Emergency fund',
+    icon: 'shield',
+    current_amount: 1800,
+    target_amount: 5000,
+  },
+  {
+    id: 'goal-2',
+    name: 'Vacation',
+    icon: 'plane',
+    current_amount: 950,
+    target_amount: 2000,
+  },
+  {
+    id: 'goal-3',
+    name: 'New car',
+    icon: 'car',
+    current_amount: 4200,
+    target_amount: 12000,
+  },
+  {
+    id: 'goal-4',
+    name: 'Home deposit',
+    icon: 'home',
+    current_amount: 10000,
+    target_amount: 10000,
+  },
+]
+
 function App() {
   return (
     <div className="app">
       <h1 className='bg-red-500'>Expense Tracker</h1>
       <div className="grid gap-6 p-6">
 
-        <OverspendingAlerts
+        {/* <OverspendingAlerts
           transactions={mockCurrentMonthTransactions}
           budgets={mockBudgets}
-        />
+        /> */}
         
-        <MonthlyComparison
-          currentMonthTransactions={mockCurrentMonthTransactions}
-          lastMonthTransactions={mockLastMonthTransactions}
-        />
-        <CategoryBreakdown transactions={mockTransactions} />
+        {/* <MonthlyComparison */}
+          {/* currentMonthTransactions={mockCurrentMonthTransactions} */}
+          {/* lastMonthTransactions={mockLastMonthTransactions} */}
+        {/* /> */}
+        {/* <CategoryBreakdown transactions={mockTransactions} /> */}
+
+        <SavingGoals goals={mockSavingsGoals} onAddGoal={() => {}} />
       </div>
     </div>
   )
