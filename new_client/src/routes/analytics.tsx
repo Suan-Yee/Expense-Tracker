@@ -1,9 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+import AnalyticsPage from '../pages/AnalyticsPage'
 
 export const Route = createFileRoute('/analytics')({
-  component: RouteComponent,
+  component: AnalyticsPage,
 })
-
-function RouteComponent() {
-  return <div>Hello "/analytics"!</div>
-}

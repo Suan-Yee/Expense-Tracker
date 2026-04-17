@@ -3,6 +3,7 @@ import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { useAuthStore } from "../../store/authStore";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -26,11 +27,13 @@ export default function LoginForm() {
   return (
     <section className="relative flex h-[100svh] items-center justify-center overflow-hidden px-4 py-4">
       <div className="relative z-10 w-full max-w-[420px]">
-        <form
+        <motion.form
+          layout
+          transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
           onSubmit={handleSubmit}
-          className="rounded-[22px] border border-white/75 bg-white/92 px-6 py-7 shadow-[0_30px_60px_-38px_rgba(8,75,54,0.55)] backdrop-blur-md sm:px-8"
+          className="rounded-[22px] border border-white/75 bg-white/92 px-6 py-7 shadow-[0_30px_60px_-38px_rgba(8,75,54,0.55)] backdrop-blur-md sm:px-8 overflow-hidden"
         >
-          <header className="mb-6 text-center">
+          <motion.header layout className="mb-6 text-center">
             <p className="text-xs font-semibold tracking-[0.14em] text-emerald-600">
               AUTHPORTAL
             </p>
@@ -40,15 +43,25 @@ export default function LoginForm() {
             <p className="mt-1 text-sm text-slate-500">
               Log in to continue managing your expenses.
             </p>
-          </header>
+          </motion.header>
 
-          {error && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </div>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, ease: "anticipate" }}
+                className="overflow-hidden"
+              >
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50/90 px-3 py-2.5 text-[13px] font-medium text-red-600 shadow-sm backdrop-blur-sm">
+                  {error}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <div className="space-y-4">
+          <motion.div layout className="space-y-4">
             <div className="space-y-2">
               <label
                 className="text-[11px] font-bold tracking-[0.08em] text-slate-500"
@@ -105,26 +118,28 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="mt-3 text-right">
+          <motion.div layout className="mt-3 text-right">
             <button
               type="button"
               className="text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700"
             >
               Forgot password?
             </button>
-          </div>
+          </motion.div>
 
-          <button
+          <motion.button
+            layout
+            whileTap={{ scale: isLoading ? 1 : 0.98 }}
             type="submit"
             disabled={isLoading}
-            className="mt-4 h-11 w-full rounded-xl border border-emerald-600 bg-emerald-600 text-[15px] font-bold text-white shadow-[0_14px_28px_-16px_rgba(5,150,105,0.85)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-emerald-500 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-65"
+            className="mt-4 h-11 w-full rounded-xl border border-emerald-600 bg-emerald-600 text-[15px] font-bold text-white shadow-[0_14px_28px_-16px_rgba(5,150,105,0.85)] transition-[background,border] duration-300 ease-out hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-65"
           >
             {isLoading ? "Logging in..." : "Log in"}
-          </button>
+          </motion.button>
 
-          <p className="mt-5 text-center text-sm text-slate-500">
+          <motion.p layout className="mt-5 text-center text-sm text-slate-500">
             New here?{" "}
             <Link
               to="/signup"
@@ -132,8 +147,8 @@ export default function LoginForm() {
             >
               Create account
             </Link>
-          </p>
-        </form>
+          </motion.p>
+        </motion.form>
       </div>
     </section>
   );

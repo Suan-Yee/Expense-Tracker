@@ -1,9 +1,22 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import DashboardPage from '../pages/DashboardPage'
+import { useAuthStore } from '../store/authStore'
 
 export const Route = createFileRoute('/dashboard')({
-  component: RouteComponent,
-})
+  beforeLoad: () => {
+    const { isAuthenticated } = useAuthStore.getState();
 
-function RouteComponent() {
-  return <div>Hello "/dashboard"!</div>
-}
+    if (!isAuthenticated) {
+      throw redirect({
+        to: "/login",
+        search: {
+          redirect: "/dashboard",
+        },
+      });
+    }
+  },
+  component: DashboardPage,
+  context: () => ({
+    title: "Dashboard - Expense-Tracker"
+  })
+})

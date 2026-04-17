@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff, Lock, Mail, UserRound } from "lucide-react";
-import { useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useAuthStore } from "../../store/authStore";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function SignupForm() {
   const [name, setName] = useState("");
@@ -12,14 +13,13 @@ export default function SignupForm() {
   const navigate = useNavigate();
   const { signup, isLoading, error } = useAuthStore();
 
-  async function handleSubmit(event: ChangeEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    await signup(name, email, password);
-
-    const { isAuthenticated } = useAuthStore.getState();
-    if (isAuthenticated) {
-      navigate({ to: "/dashboard" });
+    const success = await signup(name, email, password);
+    
+    if (success) {
+      navigate({ to: "/login" });
     }
   }
 
@@ -28,10 +28,14 @@ export default function SignupForm() {
   }
 
   return (
-    <section className="relative isolate flex h-[100svh] items-center justify-center px-4 py-3 sm:px-6">
+    <section className="relative isolate flex h-[100svh] items-center justify-center overflow-hidden px-4 py-3 sm:px-6">
       <div className="relative z-10 w-full max-w-[420px]">
-        <div className="max-h-[calc(100svh-1.5rem)] overflow-y-auto rounded-[20px] border border-white/75 bg-white/92 px-6 py-6 shadow-[0_30px_60px_-35px_rgba(10,85,60,0.45)] backdrop-blur-md sm:px-7">
-          <header className="mb-4 text-center">
+        <motion.div 
+          layout
+          transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
+          className="max-h-[calc(100svh-1.5rem)] overflow-y-auto overflow-x-hidden rounded-[20px] border border-white/75 bg-white/92 px-6 py-6 shadow-[0_30px_60px_-35px_rgba(10,85,60,0.45)] backdrop-blur-md sm:px-7"
+        >
+          <motion.header layout className="mb-4 text-center">
             <p className="text-[11px] font-semibold tracking-[0.14em] text-emerald-600">
               AUTHPORTAL
             </p>
@@ -41,16 +45,26 @@ export default function SignupForm() {
             <p className="mt-1 text-xs text-slate-500">
               Join the community and start your journey today.
             </p>
-          </header>
+          </motion.header>
 
           <form onSubmit={handleSubmit} className="space-y-3.5">
-            {error && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </div>
-            )}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, y: -10 }}
+                  animate={{ opacity: 1, height: "auto", y: 0 }}
+                  exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3, ease: "anticipate" }}
+                  className="overflow-hidden"
+                >
+                  <div className="mb-3.5 rounded-xl border border-red-200 bg-red-50/90 px-3 py-2.5 text-[13px] font-medium text-red-600 shadow-sm backdrop-blur-sm">
+                    {error}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <div className="space-y-2">
+            <motion.div layout className="space-y-2">
               <label
                 className="text-[10px] font-bold tracking-[0.08em] text-slate-500"
                 htmlFor="name"
@@ -70,9 +84,9 @@ export default function SignupForm() {
                   className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div layout className="space-y-2">
               <label
                 className="text-[10px] font-bold tracking-[0.08em] text-slate-500"
                 htmlFor="email"
@@ -92,9 +106,9 @@ export default function SignupForm() {
                   className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
                 />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="space-y-2">
+            <motion.div layout className="space-y-2">
               <label
                 className="text-[10px] font-bold tracking-[0.08em] text-slate-500"
                 htmlFor="password"
@@ -127,25 +141,27 @@ export default function SignupForm() {
                   )}
                 </button>
               </div>
-            </div>
+            </motion.div>
 
-            <button
+            <motion.button
+              layout
+              whileTap={{ scale: isLoading ? 1 : 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="mt-1 h-10 w-full rounded-xl border border-emerald-600 bg-emerald-600 text-sm font-bold text-white shadow-[0_14px_28px_-16px_rgba(5,150,105,0.85)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-emerald-500 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-65"
+              className="mt-1 h-10 w-full rounded-xl border border-emerald-600 bg-emerald-600 text-sm font-bold text-white shadow-[0_14px_28px_-16px_rgba(5,150,105,0.85)] transition-[background,border] duration-300 ease-out hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-65"
             >
               {isLoading ? "Creating account..." : "Create account"}
-            </button>
+            </motion.button>
 
-            <div className="mt-4 flex items-center gap-3">
+            <motion.div layout className="mt-4 flex items-center gap-3">
               <span className="h-px flex-1 bg-slate-200" />
               <span className="text-[10px] font-semibold tracking-[0.08em] text-slate-400">
                 OR SIGN UP WITH
               </span>
               <span className="h-px flex-1 bg-slate-200" />
-            </div>
+            </motion.div>
 
-            <div className="mt-3 grid grid-cols-2 gap-3">
+            <motion.div layout className="mt-3 grid grid-cols-2 gap-3">
               <button
                 type="button"
                 className="h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
@@ -158,10 +174,10 @@ export default function SignupForm() {
               >
                 Facebook
               </button>
-            </div>
+            </motion.div>
           </form>
 
-          <p className="mt-4 text-center text-xs text-slate-500">
+          <motion.p layout className="mt-4 text-center text-xs text-slate-500">
             Already have an account?{" "}
             <Link
               to="/login"
@@ -169,8 +185,8 @@ export default function SignupForm() {
             >
               Log in
             </Link>
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </div>
     </section>
   );

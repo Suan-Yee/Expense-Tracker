@@ -3,9 +3,9 @@ import axios from "axios"
 const TOKEN_KEY = "EXPENSE_TOKEN"
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || "https://localhost:5000/api",
+    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
     headers: {
-        "Content-Type": "Applicatoin/json",
+        "Content-Type": "application/json",
     },
 });
 

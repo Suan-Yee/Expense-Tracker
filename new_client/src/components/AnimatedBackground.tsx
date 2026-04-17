@@ -8,38 +8,56 @@ type Dot = {
   vx: number;
   vy: number;
   radius: number;
+  baseRadius: number;
   opacity: number;
   phaseX: number;
   phaseY: number;
   speed: number;
   driftX: number;
   driftY: number;
+  color: string;
 };
 
 function createDots(width: number, height: number): Dot[] {
   const density = Math.round((width * height) / 13000);
-  const count = Math.max(70, Math.min(165, density));
+  const mossCount = Math.max(90, Math.min(200, density));
 
-  return Array.from({ length: count }, () => {
+  const particles: Dot[] = [];
+
+  const mossColors = [
+    "rgba(74, 114, 86",
+    "rgba(93, 130, 99",
+    "rgba(113, 148, 110",
+    "rgba(143, 174, 146",
+    "rgba(102, 122, 85",
+  ];
+
+  for (let i = 0; i < mossCount; i++) {
     const x = Math.random() * width;
     const y = Math.random() * height;
+    const color = mossColors[Math.floor(Math.random() * mossColors.length)];
+    const baseRadius = 1.8 + Math.random() * 3.5;
 
-    return {
+    particles.push({
       baseX: x,
       baseY: y,
       x,
       y,
       vx: 0,
       vy: 0,
-      radius: 1.3 + Math.random() * 2.7,
-      opacity: 0.11 + Math.random() * 0.28,
+      radius: baseRadius,
+      baseRadius,
+      opacity: 0.15 + Math.random() * 0.45,
       phaseX: Math.random() * Math.PI * 2,
       phaseY: Math.random() * Math.PI * 2,
-      speed: 0.7 + Math.random() * 1.35,
-      driftX: 5 + Math.random() * 20,
-      driftY: 5 + Math.random() * 16,
-    };
-  });
+      speed: 0.4 + Math.random() * 0.9,
+      driftX: 3 + Math.random() * 15,
+      driftY: 3 + Math.random() * 12,
+      color,
+    });
+  }
+
+  return particles;
 }
 
 export default function AnimatedBackground() {
@@ -95,7 +113,13 @@ export default function AnimatedBackground() {
       const spring = 0.125;
       const damping = 0.82;
 
+      // Update and Draw particles
       for (const dot of dots) {
+        // Blooming Moss Logic
+        const breath = 1 + 0.35 * Math.sin(time * 0.0015 + dot.phaseX);
+        dot.radius = dot.baseRadius * breath;
+
+        // Moss Position Updates
         const waveX = Math.sin(time * 0.00055 * dot.speed + dot.phaseX) * dot.driftX;
         const waveY = Math.cos(time * 0.00065 * dot.speed + dot.phaseY) * dot.driftY;
 
@@ -120,13 +144,21 @@ export default function AnimatedBackground() {
         dot.x += dot.vx;
         dot.y += dot.vy;
 
-        const shimmer = 0.06 * Math.sin(time * 0.0012 + dot.phaseY);
-        const alpha = Math.max(0.08, Math.min(0.48, dot.opacity + shimmer));
+        // Draw Moss
+        const shimmer = 0.08 * Math.sin(time * 0.001 + dot.phaseY);
+        const alpha = Math.max(0.1, Math.min(0.65, dot.opacity + shimmer));
 
         context.beginPath();
         context.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
-        context.fillStyle = `rgba(27, 148, 108, ${alpha})`;
+        context.fillStyle = `${dot.color}, ${alpha})`;
         context.fill();
+        
+        if (dot.baseRadius > 3.5) {
+          context.beginPath();
+          context.arc(dot.x, dot.y, dot.radius * 0.4, 0, Math.PI * 2);
+          context.fillStyle = `rgba(45, 74, 52, ${alpha * 0.8})`;
+          context.fill();
+        }
       }
 
       frameRef.current = window.requestAnimationFrame(animate);
@@ -152,18 +184,44 @@ export default function AnimatedBackground() {
 
   return (
     <div
-      className="fixed inset-0 -z-10 bg-white"
+      className="fixed inset-0 -z-10 bg-[#e8f2eb]"
       style={{
-        background: "linear-gradient(168deg, #f8fff8 0%, #e8f7f0 38%, #d8efe4 100%)",
+        background: `
+          linear-gradient(168deg, #eaf2eb 0%, #d5e5d9 38%, #c2d6c7 100%),
+          url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E")
+        `,
       }}
     >
       <canvas
         ref={canvasRef}
-        className="pointer-events-none absolute inset-0 z-0"
+        className="pointer-events-none absolute inset-0 z-0 mix-blend-multiply"
         aria-hidden="true"
       />
-      <div className="pointer-events-none absolute -left-20 top-8 z-0 h-72 w-72 rounded-full bg-emerald-200/45 blur-3xl" />
-      <div className="pointer-events-none absolute -right-16 bottom-0 z-0 h-80 w-80 rounded-full bg-emerald-100/80 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 top-8 z-0 h-96 w-96 rounded-full bg-[#8fae92]/30 blur-[100px]" />
+      <div className="pointer-events-none absolute -right-16 bottom-0 z-0 h-[30rem] w-[30rem] rounded-full bg-[#7a9e7f]/40 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/3 bottom-1/4 z-0 h-64 w-64 rounded-full bg-[#5d8263]/20 blur-[90px]" />
+
+      {/* God rays (Sunbeams filtering through canopy) */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden mix-blend-overlay opacity-60">
+        <div className="absolute -top-[20%] left-[0%] h-[150%] w-[35%] -rotate-[35deg] bg-gradient-to-b from-[#e3fae8]/40 to-transparent blur-[110px]" />
+        <div className="absolute -top-[20%] left-[30%] h-[150%] w-[25%] -rotate-[35deg] bg-gradient-to-b from-[#e3fae8]/25 to-transparent blur-[90px]" />
+        <div className="absolute -top-[20%] left-[60%] h-[150%] w-[40%] -rotate-[35deg] bg-gradient-to-b from-[#e3fae8]/30 to-transparent blur-[120px]" />
+      </div>
+
+      {/* Canopy Vignette (Dark shadows on edges to create depth) */}
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,_transparent_20%,_rgba(20,40,25,0.45)_120%)]" />
+
+      {/* Scrolling Mist / Fog */}
+      <div className="pointer-events-none absolute bottom-0 left-0 z-0 flex h-[35vh] w-[200%] animate-drift opacity-90">
+        <div className="flex h-full w-1/2">
+           <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(241,248,243,0.8)_0%,_transparent_75%)]" />
+           <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(226,239,229,0.7)_0%,_transparent_70%)]" />
+        </div>
+        <div className="flex h-full w-1/2">
+           <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(241,248,243,0.8)_0%,_transparent_75%)]" />
+           <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(226,239,229,0.7)_0%,_transparent_70%)]" />
+        </div>
+      </div>
     </div>
   );
 }
