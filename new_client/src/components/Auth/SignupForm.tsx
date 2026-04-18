@@ -1,8 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff, Lock, Mail, UserRound } from "lucide-react";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { motion, AnimatePresence } from "framer-motion";
+import AuthFormField from "./AuthFormField";
+
+const INPUT_CLASS =
+  "h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70";
 
 export default function SignupForm() {
   const [name, setName] = useState("");
@@ -15,36 +19,22 @@ export default function SignupForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const success = await signup(name, email, password);
-    
-    if (success) {
-      navigate({ to: "/login" });
-    }
-  }
-
-  function togglePasswordVisibility() {
-    setShowPassword((prev) => !prev);
+    if (success) navigate({ to: "/login" });
   }
 
   return (
     <section className="relative isolate flex h-[100svh] items-center justify-center overflow-hidden px-4 py-3 sm:px-6">
       <div className="relative z-10 w-full max-w-[420px]">
-        <motion.div 
+        <motion.div
           layout
           transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
           className="max-h-[calc(100svh-1.5rem)] overflow-y-auto overflow-x-hidden rounded-[20px] border border-white/75 bg-white/92 px-6 py-6 shadow-[0_30px_60px_-35px_rgba(10,85,60,0.45)] backdrop-blur-md sm:px-7"
         >
           <motion.header layout className="mb-4 text-center">
-            <p className="text-[11px] font-semibold tracking-[0.14em] text-emerald-600">
-              AUTHPORTAL
-            </p>
-            <h1 className="mt-1 text-[29px] font-extrabold leading-tight text-slate-800">
-              Create account
-            </h1>
-            <p className="mt-1 text-xs text-slate-500">
-              Join the community and start your journey today.
-            </p>
+            <p className="text-[11px] font-semibold tracking-[0.14em] text-emerald-600">AUTHPORTAL</p>
+            <h1 className="mt-1 text-[29px] font-extrabold leading-tight text-slate-800">Create account</h1>
+            <p className="mt-1 text-xs text-slate-500">Join the community and start your journey today.</p>
           </motion.header>
 
           <form onSubmit={handleSubmit} className="space-y-3.5">
@@ -64,84 +54,56 @@ export default function SignupForm() {
               )}
             </AnimatePresence>
 
-            <motion.div layout className="space-y-2">
-              <label
-                className="text-[10px] font-bold tracking-[0.08em] text-slate-500"
-                htmlFor="name"
-              >
-                FULL NAME
-              </label>
-              <div className="relative">
-                <UserRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  id="name"
-                  required
-                  disabled={isLoading}
-                  placeholder="John Doe"
-                  onChange={(event) => setName(event.target.value)}
-                  value={name}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
-                />
-              </div>
-            </motion.div>
+            <AuthFormField id="name" label="FULL NAME">
+              <UserRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                id="name"
+                required
+                disabled={isLoading}
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={INPUT_CLASS}
+              />
+            </AuthFormField>
 
-            <motion.div layout className="space-y-2">
-              <label
-                className="text-[10px] font-bold tracking-[0.08em] text-slate-500"
-                htmlFor="email"
-              >
-                EMAIL
-              </label>
-              <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="email"
-                  id="email"
-                  required
-                  disabled={isLoading}
-                  placeholder="john@example.com"
-                  onChange={(event) => setEmail(event.target.value)}
-                  value={email}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
-                />
-              </div>
-            </motion.div>
+            <AuthFormField id="email" label="EMAIL">
+              <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="email"
+                id="email"
+                required
+                disabled={isLoading}
+                placeholder="john@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={INPUT_CLASS}
+              />
+            </AuthFormField>
 
-            <motion.div layout className="space-y-2">
-              <label
-                className="text-[10px] font-bold tracking-[0.08em] text-slate-500"
-                htmlFor="password"
+            <AuthFormField id="password" label="PASSWORD">
+              <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                required
+                disabled={isLoading}
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`${INPUT_CLASS} pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                disabled={isLoading}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                PASSWORD
-              </label>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  required
-                  disabled={isLoading}
-                  placeholder="********"
-                  onChange={(event) => setPassword(event.target.value)}
-                  value={password}
-                  className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  disabled={isLoading}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="size-4" />
-                  ) : (
-                    <Eye className="size-4" />
-                  )}
-                </button>
-              </div>
-            </motion.div>
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </AuthFormField>
 
             <motion.button
               layout
@@ -155,9 +117,7 @@ export default function SignupForm() {
 
             <motion.div layout className="mt-4 flex items-center gap-3">
               <span className="h-px flex-1 bg-slate-200" />
-              <span className="text-[10px] font-semibold tracking-[0.08em] text-slate-400">
-                OR SIGN UP WITH
-              </span>
+              <span className="text-[10px] font-semibold tracking-[0.08em] text-slate-400">OR SIGN UP WITH</span>
               <span className="h-px flex-1 bg-slate-200" />
             </motion.div>
 
@@ -179,10 +139,7 @@ export default function SignupForm() {
 
           <motion.p layout className="mt-4 text-center text-xs text-slate-500">
             Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700"
-            >
+            <Link to="/login" className="text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700">
               Log in
             </Link>
           </motion.p>

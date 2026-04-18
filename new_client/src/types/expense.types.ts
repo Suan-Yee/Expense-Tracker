@@ -24,3 +24,10 @@ export interface ExpenseState {
     filters: ExpenseFilters;
     totalCount: number;
 }
+
+export interface createExpenseRequest {
+    amount: number;
+    category: string;
+    description: string;
+    date: string;
+}

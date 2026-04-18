@@ -47,7 +47,7 @@ function createDots(width: number, height: number): Dot[] {
       vy: 0,
       radius: baseRadius,
       baseRadius,
-      opacity: 0.15 + Math.random() * 0.45,
+      opacity: 0.1 + Math.random() * 0.3,
       phaseX: Math.random() * Math.PI * 2,
       phaseY: Math.random() * Math.PI * 2,
       speed: 0.4 + Math.random() * 0.9,
@@ -146,17 +146,17 @@ export default function AnimatedBackground() {
 
         // Draw Moss
         const shimmer = 0.08 * Math.sin(time * 0.001 + dot.phaseY);
-        const alpha = Math.max(0.1, Math.min(0.65, dot.opacity + shimmer));
+        const alpha = Math.max(0.08, Math.min(0.45, dot.opacity + shimmer));
 
         context.beginPath();
         context.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
         context.fillStyle = `${dot.color}, ${alpha})`;
         context.fill();
-        
+
         if (dot.baseRadius > 3.5) {
           context.beginPath();
           context.arc(dot.x, dot.y, dot.radius * 0.4, 0, Math.PI * 2);
-          context.fillStyle = `rgba(45, 74, 52, ${alpha * 0.8})`;
+          context.fillStyle = `rgba(75, 104, 82, ${alpha * 0.5})`;
           context.fill();
         }
       }
@@ -184,42 +184,42 @@ export default function AnimatedBackground() {
 
   return (
     <div
-      className="fixed inset-0 -z-10 bg-[#e8f2eb]"
+      className="fixed inset-0 -z-10 bg-[#f1f7f3]"
       style={{
         background: `
-          linear-gradient(168deg, #eaf2eb 0%, #d5e5d9 38%, #c2d6c7 100%),
+          linear-gradient(168deg, #f3f8f5 0%, #e3ede6 40%, #cde1d5 100%),
           url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E")
         `,
       }}
     >
       <canvas
         ref={canvasRef}
-        className="pointer-events-none absolute inset-0 z-0 mix-blend-multiply"
+        className="pointer-events-none absolute inset-0 z-0 mix-blend-multiply opacity-80"
         aria-hidden="true"
       />
-      <div className="pointer-events-none absolute -left-20 top-8 z-0 h-96 w-96 rounded-full bg-[#8fae92]/30 blur-[100px]" />
-      <div className="pointer-events-none absolute -right-16 bottom-0 z-0 h-[30rem] w-[30rem] rounded-full bg-[#7a9e7f]/40 blur-[120px]" />
-      <div className="pointer-events-none absolute left-1/3 bottom-1/4 z-0 h-64 w-64 rounded-full bg-[#5d8263]/20 blur-[90px]" />
+      <div className="pointer-events-none absolute -left-20 top-8 z-0 h-96 w-96 rounded-full bg-[#a3c4a8]/30 blur-[100px]" />
+      <div className="pointer-events-none absolute -right-16 bottom-0 z-0 h-[30rem] w-[30rem] rounded-full bg-[#90b896]/30 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/3 bottom-1/4 z-0 h-64 w-64 rounded-full bg-[#78a581]/20 blur-[90px]" />
 
       {/* God rays (Sunbeams filtering through canopy) */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden mix-blend-overlay opacity-60">
-        <div className="absolute -top-[20%] left-[0%] h-[150%] w-[35%] -rotate-[35deg] bg-gradient-to-b from-[#e3fae8]/40 to-transparent blur-[110px]" />
-        <div className="absolute -top-[20%] left-[30%] h-[150%] w-[25%] -rotate-[35deg] bg-gradient-to-b from-[#e3fae8]/25 to-transparent blur-[90px]" />
-        <div className="absolute -top-[20%] left-[60%] h-[150%] w-[40%] -rotate-[35deg] bg-gradient-to-b from-[#e3fae8]/30 to-transparent blur-[120px]" />
+        <div className="absolute -top-[20%] left-[0%] h-[150%] w-[35%] -rotate-[35deg] bg-gradient-to-b from-[#ffffff]/50 to-transparent blur-[110px]" />
+        <div className="absolute -top-[20%] left-[30%] h-[150%] w-[25%] -rotate-[35deg] bg-gradient-to-b from-[#ffffff]/40 to-transparent blur-[90px]" />
+        <div className="absolute -top-[20%] left-[60%] h-[150%] w-[40%] -rotate-[35deg] bg-gradient-to-b from-[#ffffff]/50 to-transparent blur-[120px]" />
       </div>
 
       {/* Canopy Vignette (Dark shadows on edges to create depth) */}
-      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,_transparent_20%,_rgba(20,40,25,0.45)_120%)]" />
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,_transparent_20%,_rgba(40,75,50,0.18)_120%)]" />
 
       {/* Scrolling Mist / Fog */}
       <div className="pointer-events-none absolute bottom-0 left-0 z-0 flex h-[35vh] w-[200%] animate-drift opacity-90">
         <div className="flex h-full w-1/2">
-           <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(241,248,243,0.8)_0%,_transparent_75%)]" />
-           <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(226,239,229,0.7)_0%,_transparent_70%)]" />
+          <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(241,248,243,0.8)_0%,_transparent_75%)]" />
+          <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(226,239,229,0.7)_0%,_transparent_70%)]" />
         </div>
         <div className="flex h-full w-1/2">
-           <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(241,248,243,0.8)_0%,_transparent_75%)]" />
-           <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(226,239,229,0.7)_0%,_transparent_70%)]" />
+          <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(241,248,243,0.8)_0%,_transparent_75%)]" />
+          <div className="h-full w-1/2 bg-[radial-gradient(ellipse_at_bottom,_rgba(226,239,229,0.7)_0%,_transparent_70%)]" />
         </div>
       </div>
     </div>

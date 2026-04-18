@@ -4,6 +4,10 @@ import { useState } from "react";
 import type { ChangeEvent } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { motion, AnimatePresence } from "framer-motion";
+import AuthFormField from "./AuthFormField";
+
+const INPUT_CLASS =
+  "h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-[15px] text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -15,13 +19,9 @@ export default function LoginForm() {
 
   async function handleSubmit(event: ChangeEvent<HTMLFormElement>) {
     event.preventDefault();
-
     await login(email, password);
-
     const { isAuthenticated } = useAuthStore.getState();
-    if (isAuthenticated) {
-      navigate({ to: "/dashboard" });
-    }
+    if (isAuthenticated) navigate({ to: "/dashboard" });
   }
 
   return (
@@ -34,15 +34,9 @@ export default function LoginForm() {
           className="rounded-[22px] border border-white/75 bg-white/92 px-6 py-7 shadow-[0_30px_60px_-38px_rgba(8,75,54,0.55)] backdrop-blur-md sm:px-8 overflow-hidden"
         >
           <motion.header layout className="mb-6 text-center">
-            <p className="text-xs font-semibold tracking-[0.14em] text-emerald-600">
-              AUTHPORTAL
-            </p>
-            <h1 className="mt-1 text-3xl font-extrabold text-slate-800">
-              Welcome back
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Log in to continue managing your expenses.
-            </p>
+            <p className="text-xs font-semibold tracking-[0.14em] text-emerald-600">AUTHPORTAL</p>
+            <h1 className="mt-1 text-3xl font-extrabold text-slate-800">Welcome back</h1>
+            <p className="mt-1 text-sm text-slate-500">Log in to continue managing your expenses.</p>
           </motion.header>
 
           <AnimatePresence>
@@ -62,62 +56,42 @@ export default function LoginForm() {
           </AnimatePresence>
 
           <motion.div layout className="space-y-4">
-            <div className="space-y-2">
-              <label
-                className="text-[11px] font-bold tracking-[0.08em] text-slate-500"
-                htmlFor="email"
-              >
-                EMAIL
-              </label>
-              <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  disabled={isLoading}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="john@example.com"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-[15px] text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
-                />
-              </div>
-            </div>
+            <AuthFormField id="email" label="EMAIL">
+              <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                disabled={isLoading}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@example.com"
+                className={INPUT_CLASS}
+              />
+            </AuthFormField>
 
-            <div className="space-y-2">
-              <label
-                className="text-[11px] font-bold tracking-[0.08em] text-slate-500"
-                htmlFor="password"
+            <AuthFormField id="password" label="PASSWORD">
+              <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                disabled={isLoading}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="********"
+                className={`${INPUT_CLASS} pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                disabled={isLoading}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                PASSWORD
-              </label>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  disabled={isLoading}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="********"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-[15px] text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  disabled={isLoading}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="size-4" />
-                  ) : (
-                    <Eye className="size-4" />
-                  )}
-                </button>
-              </div>
-            </div>
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </AuthFormField>
           </motion.div>
 
           <motion.div layout className="mt-3 text-right">
@@ -141,10 +115,7 @@ export default function LoginForm() {
 
           <motion.p layout className="mt-5 text-center text-sm text-slate-500">
             New here?{" "}
-            <Link
-              to="/signup"
-              className="font-semibold text-emerald-600 transition-colors hover:text-emerald-700"
-            >
+            <Link to="/signup" className="font-semibold text-emerald-600 transition-colors hover:text-emerald-700">
               Create account
             </Link>
           </motion.p>

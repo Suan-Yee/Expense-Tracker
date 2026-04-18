@@ -16,6 +16,17 @@ export interface AuthResponse {
     token: string;
 }
 
+export interface UpdateProfileRequest {
+    name?: string;
+    email?: string;
+    profileImage?: string;
+}
+
+export interface ChangePasswordRequest {
+    currentPassword?: string;
+    newPassword?: string;
+}
+
 export interface AuthState {
     user: User | null;
     token: string | null;

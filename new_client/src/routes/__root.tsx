@@ -1,6 +1,6 @@
 import { createRootRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import AnimatedBackground from "../components/AnimatedBackground";
+import AnimatedBackground from "../components/Common/AnimatedBackground";
 
 import { useAuthStore } from "../store/authStore";
 import Navigation from "../components/Common/Navigation";

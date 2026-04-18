@@ -32,7 +32,7 @@ api.interceptors.response.use(
         if(error.response.status === 401) {
             localStorage.removeItem(TOKEN_KEY)
 
-            if (!window.location.pathname.includes("/login") || !window.location.pathname.includes("/signup")) {
+            if (!window.location.pathname.includes("/login") && !window.location.pathname.includes("/signup")) {
                 window.location.href = "/login";
             }
         }
