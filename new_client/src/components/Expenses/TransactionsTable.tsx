@@ -6,11 +6,19 @@ interface TransactionsTableProps {
   transactions: any[];
   isPanelOpen: boolean;
   onEdit: (transaction: any) => void;
+  onDelete: (id: string) => void;
   sortConfig: { key: string; direction: "asc" | "desc" } | null;
   onSort: (key: string) => void;
 }
 
-export default function TransactionsTable({ transactions, isPanelOpen, onEdit, sortConfig, onSort }: TransactionsTableProps) {
+export default function TransactionsTable({ 
+  transactions, 
+  isPanelOpen, 
+  onEdit, 
+  onDelete,
+  sortConfig, 
+  onSort 
+}: TransactionsTableProps) {
   
   const formatDate = (dateValue: any, formatStr: string) => {
     if (!dateValue) return "N/A";
@@ -37,8 +45,8 @@ export default function TransactionsTable({ transactions, isPanelOpen, onEdit, s
             </th>
             <th className="py-3 px-4 font-bold min-w-[150px]">Description</th>
             <th className="py-3 px-4 font-bold min-w-[120px]">Category</th>
-            <th className="py-3 px-4 text-right">
-              <button onClick={() => onSort("amount")} className="inline-flex items-center justify-end hover:text-slate-600 transition-colors font-bold w-full outline-none">
+            <th className="py-3 px-4 text-left">
+              <button onClick={() => onSort("amount")} className="inline-flex items-center justify-start hover:text-slate-600 transition-colors font-bold w-full outline-none">
                 Amount {getSortIcon("amount")}
               </button>
             </th>
@@ -52,7 +60,7 @@ export default function TransactionsTable({ transactions, isPanelOpen, onEdit, s
         <tbody>
           {transactions.map((tr) => (
             <tr 
-              key={tr.id} 
+              key={tr._id} 
               className="border-b border-slate-100 transition-colors hover:bg-slate-50/50 group"
             >
               <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
@@ -66,7 +74,7 @@ export default function TransactionsTable({ transactions, isPanelOpen, onEdit, s
                   {tr.category.charAt(0).toUpperCase() + tr.category.slice(1)}
                 </span>
               </td>
-              <td className={`py-3.5 px-4 text-right font-bold ${tr.amount > 0 ? "text-emerald-500" : "text-slate-800"}`}>
+              <td className={`py-3.5 px-4 text-left font-bold ${tr.amount > 0 ? "text-emerald-500" : "text-slate-800"}`}>
                 {tr.amount > 0 ? "+" : ""}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(tr.amount)}
               </td>
               <td className="py-3.5 px-4 text-slate-400 text-[12px] whitespace-nowrap">
@@ -83,6 +91,7 @@ export default function TransactionsTable({ transactions, isPanelOpen, onEdit, s
                     <Edit2 size={14} strokeWidth={2.5}/>
                   </button>
                   <button 
+                    onClick={() => onDelete(tr._id)}
                     className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                     aria-label="Delete"
                   >

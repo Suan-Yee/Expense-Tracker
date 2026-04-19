@@ -6,6 +6,7 @@ import TransactionsTable from "../components/Expenses/TransactionsTable";
 import Pagination from "../components/Expenses/Pagination";
 import TransactionPanel from "../components/Expenses/TransactionPanel";
 import { useExpenseStore } from "../store/expenseStore";
+import ActionConfirmModal from "../components/Common/ActionConfirmModal";
 
 // Mock Data (Keeping as fallback or for design reference)
 export const MOCK_TRANSACTIONS = [
@@ -16,20 +17,26 @@ export const MOCK_TRANSACTIONS = [
 export default function ExpensesPage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" } | null>(null);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
 
-  const { expenses, getAllExpenses, isLoading } = useExpenseStore();
+  const { expenses, getAllExpenses, deleteExpense, setFilters, filters, isLoading } = useExpenseStore();
+
+  // Map backend sort string ("-date", "amount") to table sortConfig ({ key, direction })
+  const sortConfig = filters.sort ? {
+    key: filters.sort.startsWith("-") ? filters.sort.slice(1) : filters.sort,
+    direction: filters.sort.startsWith("-") ? ("desc" as const) : ("asc" as const)
+  } : null;
 
   useEffect(() => {
     getAllExpenses();
   }, [getAllExpenses]);
 
   const handleSort = (key: string) => {
-    let direction: "asc" | "desc" = "asc";
+    let newSort = key;
     if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
+      newSort = `-${key}`;
     }
-    setSortConfig({ key, direction });
+    setFilters({ sort: newSort });
   };
 
   const openAddPanel = () => {
@@ -45,6 +52,16 @@ export default function ExpensesPage() {
   const closePanel = () => {
     setIsPanelOpen(false);
     setTimeout(() => setEditingTransaction(null), 300); // Clear after animation
+  };
+
+  const confirmDelete = async () => {
+    if (transactionToDelete) {
+      await deleteExpense(transactionToDelete);
+      setTransactionToDelete(null);
+      if (isPanelOpen) {
+        closePanel();
+      }
+    }
   };
 
   return (
@@ -85,6 +102,7 @@ export default function ExpensesPage() {
                 transactions={expenses} 
                 isPanelOpen={isPanelOpen} 
                 onEdit={openEditPanel} 
+                onDelete={(id) => setTransactionToDelete(id)}
                 sortConfig={sortConfig}
                 onSort={handleSort}
                 />
@@ -116,6 +134,7 @@ export default function ExpensesPage() {
                  <TransactionPanel 
                    transaction={editingTransaction} 
                    onClose={closePanel} 
+                   onDelete={(id) => setTransactionToDelete(id)}
                  />
               </div>
             </motion.div>
@@ -123,6 +142,17 @@ export default function ExpensesPage() {
         </AnimatePresence>
 
       </div>
+
+      <ActionConfirmModal
+        isOpen={!!transactionToDelete}
+        onClose={() => setTransactionToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Transaction"
+        description="Are you sure you want to delete this transaction? This action cannot be undone."
+        confirmText="Yes, Delete"
+        variant="danger"
+        isLoading={isLoading}
+      />
     </div>
   );
 }

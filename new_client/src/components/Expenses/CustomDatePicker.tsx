@@ -12,7 +12,10 @@ interface CustomDatePickerProps {
 export default function CustomDatePicker({ value, onChange, className = "" }: CustomDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [currentMonth, setCurrentMonth] = useState(value ? new Date(value) : new Date());
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    if (!value) return new Date();
+    return value.length === 10 ? new Date(value + "T00:00:00") : new Date(value);
+  });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -34,7 +37,15 @@ export default function CustomDatePicker({ value, onChange, className = "" }: Cu
     setCurrentMonth(addMonths(currentMonth, 1));
   };
 
-  const selectedDate = value ? new Date(value + "T00:00:00") : null;
+  // Robust date parsing helper for display and logic
+  const parseDateForUI = (val: string) => {
+    if (!val) return new Date();
+    // If it is YYYY-MM-DD, append T00:00:00 to avoid UTC shift
+    if (val.length === 10) return new Date(val + "T00:00:00");
+    return new Date(val);
+  };
+
+  const selectedDate = value ? parseDateForUI(value) : null;
   const daysInMonth = getDaysInMonth(currentMonth);
   const startDay = getDay(startOfMonth(currentMonth));
   const blanks = Array.from({ length: startDay }, (_, i) => i);
@@ -54,7 +65,7 @@ export default function CustomDatePicker({ value, onChange, className = "" }: Cu
       >
         <CalendarIcon size={16} className={`transition-colors duration-300 ${isOpen ? "text-emerald-500" : "text-slate-400"}`} />
         <span className="font-medium text-slate-700">
-          {value ? format(new Date(value + "T00:00:00"), "MMM dd, yyyy") : "Select Date"}
+          {value ? format(parseDateForUI(value), "MMM dd, yyyy") : "Select Date"}
         </span>
       </button>
 

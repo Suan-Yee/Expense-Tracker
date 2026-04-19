@@ -1,29 +1,33 @@
 import { X, Trash2, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import CustomSelect from "./CustomSelect";
 import CustomDatePicker from "./CustomDatePicker";
 import { useExpenseStore } from "../../store/expenseStore";
 import { EXPENSE_CATEGORIES } from "../../constants/categories";
-import type { ExpenseFormData } from "../../types/expense.types";
+import { type ExpenseFormData } from "../../types/expense.types";
 
 interface TransactionPanelProps {
   transaction: any | null;
   onClose: () => void;
+  onDelete: (id: string) => void;
 }
 
-export default function TransactionPanel({ transaction, onClose }: TransactionPanelProps) {
+export default function TransactionPanel({ transaction, onClose, onDelete }: TransactionPanelProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("food");
   const [date, setDate] = useState("");
+  const [localError, setLocalError] = useState("");
 
   useEffect(() => {
     if (transaction) {
       setDescription(transaction.description);
       setAmount(Math.abs(transaction.amount).toString());
       setCategory(transaction.category);
-      setDate(transaction.date);
+      // Ensure date is YYYY-MM-DD even if full ISO comes from API
+      const rawDate = transaction.date;
+      setDate(typeof rawDate === "string" ? rawDate.split("T")[0] : new Date(rawDate).toISOString().split("T")[0]);
     } else {
       setDescription("");
       setAmount("");
@@ -33,11 +37,12 @@ export default function TransactionPanel({ transaction, onClose }: TransactionPa
   }, [transaction]);
 
   const isEdit = !!transaction;
-  const { createExpense, isLoading, error } = useExpenseStore();
+  const { createExpense, updateExpense, isLoading, error } = useExpenseStore();
 
   const handleSave = async () => {
+    setLocalError("");
     if (!description || !amount || !category || !date) {
-      alert("Please fill in all required fields");
+      setLocalError("Please fill in all required fields.");
       return;
     }
 
@@ -49,15 +54,21 @@ export default function TransactionPanel({ transaction, onClose }: TransactionPa
     };
 
     if (isEdit) {
-      // Handle edit logic here if needed, but the user only asked for createExpense
-      console.log("Edit logic not yet implemented", expenseData);
+      await updateExpense(transaction._id, expenseData);
+      if (!useExpenseStore.getState().error) {
+        onClose();
+      }
     } else {
       await createExpense(expenseData);
-      // We check the store's error state after the async call completes
       if (!useExpenseStore.getState().error) {
         onClose();
       }
     }
+  };
+
+  const handleDelete = async () => {
+    if (!transaction?._id) return;
+    onDelete(transaction._id);
   };
 
   return (
@@ -77,55 +88,53 @@ export default function TransactionPanel({ transaction, onClose }: TransactionPa
 
       <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
         
-        {/* Dynamic Avatar & Header display (if Edit mode) */}
         {isEdit && (
           <div className="flex flex-col items-center mb-8">
-            <div className="flex size-14 items-center justify-center rounded-full bg-slate-100 text-xl font-bold text-slate-600 mb-3 border border-slate-200">
-              {description.charAt(0).toUpperCase() || "?"}
-            </div>
-            <h3 className="text-lg font-bold text-slate-800">{description}</h3>
-            <p className={`text-2xl font-black tracking-tight ${transaction.amount > 0 ? "text-emerald-500" : "text-slate-800"}`}>
-              {transaction.amount > 0 ? "+" : "-"}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(transaction.amount))}
+            <h3 className="text-lg font-bold text-slate-800">{description || "No Description"}</h3>
+            <p className={`text-2xl font-black tracking-tight ${parseFloat(amount) >= 0 ? "text-emerald-500" : "text-slate-800"}`}>
+              {parseFloat(amount) >= 0 ? "+" : ""}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(amount) || 0)}
             </p>
             <p className="text-xs font-semibold text-slate-400 mt-1">
-               {format(parseISO(transaction.date), "MMM dd, yyyy 'at' hh:mm a")}
+               {date ? format(date.length === 10 ? new Date(date + "T00:00:00") : new Date(date), "MMM dd, yyyy") : "No Date"}
             </p>
           </div>
         )}
 
-        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-          {!isEdit && (
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                Description / Merchant
-                </label>
-                <input 
-                type="text" 
-                placeholder="E.g. Figma, Uber, etc."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-[14px] text-slate-800 outline-none transition-all focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                />
-            </div>
-          )}
+        {localError && (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50/90 px-3 py-2.5 text-[13px] font-medium text-red-600 shadow-sm backdrop-blur-sm animate-in fade-in slide-in-from-top-1 duration-200">
+            {localError}
+          </div>
+        )}
 
-          {!isEdit && (
-            <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-                Amount
-                </label>
-                <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
-                    <input 
-                    type="number" 
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-8 pr-4 py-2.5 text-[14px] text-slate-800 outline-none transition-all focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                    />
-                </div>
+        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+              Description / Merchant
+            </label>
+            <input 
+              type="text" 
+              placeholder="E.g. Figma, Uber, etc."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-[14px] text-slate-800 outline-none transition-all focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+              Amount
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+              <input 
+                type="number" 
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-8 pr-4 py-2.5 text-[14px] text-slate-800 outline-none transition-all focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
+              />
             </div>
-          )}
+          </div>
 
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
@@ -157,14 +166,17 @@ export default function TransactionPanel({ transaction, onClose }: TransactionPa
         </form>
       </div>
 
-      {/* Footer / Actions */}
       <div className="flex items-center justify-between border-t border-slate-100 p-6 bg-slate-50/50 rounded-b-[20px]">
         {isEdit ? (
-           <button className="flex size-10 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-colors hover:bg-red-100 hover:text-red-600">
+           <button 
+             onClick={handleDelete}
+             disabled={isLoading}
+             className="flex size-10 items-center justify-center rounded-xl bg-red-50 text-red-500 transition-colors hover:bg-red-100 hover:text-red-600 disabled:opacity-50"
+            >
              <Trash2 size={16} strokeWidth={2.5}/>
            </button>
         ) : (
-            <div></div> // Spacer
+            <div></div>
         )}
         <button 
           onClick={handleSave}
@@ -175,7 +187,6 @@ export default function TransactionPanel({ transaction, onClose }: TransactionPa
           {isEdit ? "Save Changes" : "Save Transaction"}
         </button>
       </div>
-
     </div>
   );
 }

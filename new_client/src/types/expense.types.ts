@@ -11,7 +11,7 @@ export interface ExpenseFilters {
     category?: string;
     sort?: string;
 
-    searchTerm?: string;
+    search?: string;
     startDate?: string | null;
     endDate?: string | null;
 }
