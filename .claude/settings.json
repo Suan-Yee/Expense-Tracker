@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.vibecode-claude.online",
+    "ANTHROPIC_API_KEY": "sk-06e36b920252a038616d15416ac5e73d7e9a62b274032996",
+
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4.6",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4.6",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4.5",
+
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1"
+  },
+  "permissions": {
+    "allow": ["Read", "Edit", "Write", "Bash"],
+    "defaultMode": "acceptEdits"
+  },
+  "model": "claude-opus-4.6"
+}

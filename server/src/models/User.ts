@@ -16,6 +16,10 @@ const userSchema = new Schema<IUser>(
         password: {
             type: String
         },
+        profileImage: {
+            type: String,
+            default: ""
+        },
     },
     {
         timestamps: true,

@@ -11,13 +11,31 @@ export enum ExpenseCategory {
     OTHER = "other",
 }
 
+export enum TransactionType {
+    INCOME = "income",
+    EXPENSE = "expense",
+    SAVING = "saving",
+}
+
+export enum RecurringFrequency {
+    DAILY = "daily",
+    WEEKLY = "weekly",
+    MONTHLY = "monthly",
+    YEARLY = "yearly",
+}
+
 export interface Expense {
     _id: string;
     userId: string;
     amount: number;
-    category: ExpenseCategory;
+    type: TransactionType;
+    category: ExpenseCategory | string;
     description: string;
     date: Date;
+    tags: string[];
+    isRecurring: boolean;
+    frequency?: RecurringFrequency;
+    nextDueDate?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -25,9 +43,14 @@ export interface Expense {
 export interface IExpense extends Document {
     userId: mongoose.Types.ObjectId;
     amount: number;
+    type: TransactionType;
     category: string;
     description: string;
     date: Date;
+    tags: string[];
+    isRecurring: boolean;
+    frequency?: RecurringFrequency;
+    nextDueDate?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -36,7 +59,8 @@ export interface User {
     _id: string;
     name: string;
     email: string;
-    password: string;
+    password?: string;
+    profileImage?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -44,7 +68,8 @@ export interface User {
 export interface IUser extends Document {
     name: string;
     email: string;
-    password: string;
+    password?: string;
+    profileImage?: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -58,22 +83,54 @@ export interface ApiResponse<T> {
 
 export interface AuthResponse {
     user: Omit<User, "password">
-    token: string;
+    token?: string;
 }
 
 export interface MonthlyTotals {
     month: string;
+    income: number;
+    expenses: number;
+    savings: number;
     total: number;
     count: number;
 }
 
 export interface DashboardStats {
     totalExpenses: number;
+    totalIncome: number;
+    totalSavings: number;
     expenseCount: number;
-    averageExpenes: number;
-    highestExpense: IExpense;
-    lowestExpense: IExpense;
+    averageExpense: number;
+    highestExpense: IExpense | null;
+    lowestExpense: IExpense | null;
     currentMonthTotal: number;
     lastMonthTotal: number;
     monthlyChange: number;
+}
+
+export interface IBudget extends Document {
+    userId: mongoose.Types.ObjectId;
+    category: string;
+    limit: number;
+    month: number;   // 0-11
+    year: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface Budget {
+    _id: string;
+    userId: string;
+    category: string;
+    limit: number;
+    month: number;
+    year: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface BudgetWithProgress extends Budget {
+    spent: number;
+    remaining: number;
+    percentage: number;
 }

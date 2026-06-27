@@ -1,26 +1,25 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, Lock, Mail, UserRound } from "lucide-react";
-import { useState, type FormEvent } from "react";
-import { useAuthStore } from "../../store/authStore";
-import { motion, AnimatePresence } from "framer-motion";
-import AuthFormField from "./AuthFormField";
-
-const INPUT_CLASS =
-  "h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70";
+import { Link, useNavigate } from "@tanstack/react-router"
+import { Eye, EyeOff, Lock, Mail, UserRound } from "lucide-react"
+import { useState, type FormEvent } from "react"
+import { useAuthStore } from "../../store/authStore"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "../ui/button"
+import { Input } from "../ui/input"
+import AuthFormField from "./AuthFormField"
 
 export default function SignupForm() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
-  const navigate = useNavigate();
-  const { signup, isLoading, error } = useAuthStore();
+  const navigate = useNavigate()
+  const { signup, isLoading, error } = useAuthStore()
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const success = await signup(name, email, password);
-    if (success) navigate({ to: "/login" });
+    event.preventDefault()
+    const success = await signup(name, email, password)
+    if (success) navigate({ to: "/login" })
   }
 
   return (
@@ -56,7 +55,7 @@ export default function SignupForm() {
 
             <AuthFormField id="name" label="FULL NAME">
               <UserRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="text"
                 id="name"
                 required
@@ -64,13 +63,13 @@ export default function SignupForm() {
                 placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={INPUT_CLASS}
+                className="h-10 pl-10"
               />
             </AuthFormField>
 
             <AuthFormField id="email" label="EMAIL">
               <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type="email"
                 id="email"
                 required
@@ -78,13 +77,13 @@ export default function SignupForm() {
                 placeholder="john@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={INPUT_CLASS}
+                className="h-10 pl-10"
               />
             </AuthFormField>
 
             <AuthFormField id="password" label="PASSWORD">
               <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 type={showPassword ? "text" : "password"}
                 id="password"
                 required
@@ -92,28 +91,24 @@ export default function SignupForm() {
                 placeholder="********"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={`${INPUT_CLASS} pr-10`}
+                className="h-10 pl-10 pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
                 disabled={isLoading}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
               </button>
             </AuthFormField>
 
-            <motion.button
-              layout
-              whileTap={{ scale: isLoading ? 1 : 0.98 }}
-              type="submit"
-              disabled={isLoading}
-              className="mt-1 h-10 w-full rounded-xl border border-emerald-600 bg-emerald-600 text-sm font-bold text-white shadow-[0_14px_28px_-16px_rgba(5,150,105,0.85)] transition-[background,border] duration-300 ease-out hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-65"
-            >
-              {isLoading ? "Creating account..." : "Create account"}
-            </motion.button>
+            <motion.div layout className="mt-1">
+              <Button type="submit" disabled={isLoading} className="h-10 w-full rounded-xl">
+                {isLoading ? "Creating account..." : "Create account"}
+              </Button>
+            </motion.div>
 
             <motion.div layout className="mt-4 flex items-center gap-3">
               <span className="h-px flex-1 bg-slate-200" />
@@ -122,18 +117,8 @@ export default function SignupForm() {
             </motion.div>
 
             <motion.div layout className="mt-3 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                className="h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
-              >
-                Google
-              </button>
-              <button
-                type="button"
-                className="h-10 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50"
-              >
-                Facebook
-              </button>
+              <Button type="button" variant="outline" className="h-10 rounded-xl text-xs">Google</Button>
+              <Button type="button" variant="outline" className="h-10 rounded-xl text-xs">Facebook</Button>
             </motion.div>
           </form>
 
@@ -146,5 +131,5 @@ export default function SignupForm() {
         </motion.div>
       </div>
     </section>
-  );
+  )
 }

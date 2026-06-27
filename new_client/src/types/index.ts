@@ -9,23 +9,41 @@ export enum ExpenseCategory {
     OTHER = "other",
 }
 
+export enum TransactionType {
+    INCOME = "income",
+    EXPENSE = "expense",
+    SAVING = "saving",
+}
+
+export enum RecurringFrequency {
+    DAILY = "daily",
+    WEEKLY = "weekly",
+    MONTHLY = "monthly",
+    YEARLY = "yearly",
+}
+
 export interface Expense {
     _id: string;
     userId: string;
     amount: number;
-    category: ExpenseCategory;
+    type: TransactionType;
+    category: ExpenseCategory | string;
     description: string;
-    date: Date;
-    createdAt: Date;
-    updatedAt: Date;
+    date: Date | string;
+    tags: string[];
+    isRecurring: boolean;
+    frequency?: RecurringFrequency;
+    nextDueDate?: Date | string;
+    createdAt: Date | string;
+    updatedAt: Date | string;
 }
 
 export interface User {
     _id: string;
     name: string;
     email: string;
-    password: string;
-    profileImage: string;
+    password?: string;
+    profileImage?: string;
     createdAt: Date;
     updatedAt: Date;
 }

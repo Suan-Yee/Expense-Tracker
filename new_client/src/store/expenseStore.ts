@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import type { ExpenseFormData, ExpenseState } from "../types/expense.types";
-import { createExpense as createExpenseService, deleteExpense as deleteExpenseService, getAllExpenses as getAllExpensesService, updateExpense as updateExpenseService } from "../services/expenseService";
+import type { ExpenseFormData, ExpenseState, ExpenseFilters } from "../types/expense.types";
+import { createExpense as createExpenseService, deleteExpense as deleteExpenseService, getAllExpenses as getAllExpensesService, updateExpense as updateExpenseService, generateRecurring as generateRecurringService } from "../services/expenseService";
 import type { AxiosError } from "axios";
 
 interface ExpenseStore extends ExpenseState {
@@ -9,6 +9,9 @@ interface ExpenseStore extends ExpenseState {
     updateExpense: (id: string, data: ExpenseFormData) => Promise<void>;
     deleteExpense: (id: string) => Promise<void>;
     setFilters: (newFilters: Partial<ExpenseFilters>) => void;
+    generateRecurring: () => Promise<void>;
+    setCurrentPage: (page: number) => void;
+    setItemsPerPage: (limit: number) => void;
 }
 
 export const useExpenseStore = create<ExpenseStore>((set, get) => ({
@@ -17,7 +20,12 @@ export const useExpenseStore = create<ExpenseStore>((set, get) => ({
     error: null,
     currentExpense: null,
     totalCount: 0,
+    currentPage: 1,
+    itemsPerPage: 10,
     filters: { category: "all", sort: "-date", search: "", startDate: null, endDate: null },
+
+    setCurrentPage: (page: number) => set({ currentPage: page }),
+    setItemsPerPage: (limit: number) => set({ itemsPerPage: limit, currentPage: 1 }),
 
     createExpense: async (data: ExpenseFormData) => {
         set({ isLoading: true, error: null });
@@ -45,6 +53,8 @@ export const useExpenseStore = create<ExpenseStore>((set, get) => ({
     getAllExpenses: async () => {
         const { filters } = get();
         set({ isLoading: true, error: null });
+        // Silently generate any due recurring entries first
+        try { await generateRecurringService(); } catch (_) { /* ignore */ }
         try {
             const response = await getAllExpensesService(filters);
             if (response.success && response.data) {
@@ -65,9 +75,14 @@ export const useExpenseStore = create<ExpenseStore>((set, get) => ({
         }
     },
 
+    generateRecurring: async () => {
+        try { await generateRecurringService(); } catch (_) { /* silent */ }
+    },
+
     setFilters: (newFilters) => {
         set((state) => ({
             filters: { ...state.filters, ...newFilters },
+            currentPage: 1,
         }));
         get().getAllExpenses();
     },

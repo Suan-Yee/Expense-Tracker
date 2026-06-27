@@ -1,86 +1,71 @@
-import { ShieldAlert, Trash2, KeyRound, Upload, X, Pencil, Check, Loader } from "lucide-react";
-import { useState } from "react";
-import { useAuthStore } from "../../store/authStore";
-import type { User } from "../../types";
-import PasswordModal from "./PasswordModal";
-import DeleteAccountModal from "./DeleteAccountModal";
+import { ShieldAlert, Trash2, KeyRound, Upload, X, Pencil, Check, Loader } from "lucide-react"
+import { useState } from "react"
+import { useAuthStore } from "../../store/authStore"
+import type { User } from "../../types"
+import PasswordModal from "./PasswordModal"
+import DeleteAccountModal from "./DeleteAccountModal"
+import { Button } from "../ui/button"
+import { Input } from "../ui/input"
+import { Label } from "../ui/label"
 
 interface ProfileViewProps {
     user: User;
 }
 
-const BASE_INPUT = "mt-1.5 block w-full rounded-[14px] border px-4 py-2.5 text-[15px] font-medium transition-all duration-200 outline-none";
-const ACTIVE_INPUT = "border-emerald-500 bg-white/80 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-emerald-100/50 shadow-sm";
-const DISABLED_INPUT = "border-transparent bg-slate-100/40 text-slate-600 cursor-not-allowed";
-const LOCKED_INPUT = `${BASE_INPUT} border-transparent bg-slate-100/40 text-slate-500 cursor-not-allowed`;
-const MODAL_INPUT = `${BASE_INPUT} ${ACTIVE_INPUT}`;
-
 export default function ProfileView({ user }: ProfileViewProps) {
-    const { updateProfile } = useAuthStore();
+    const { updateProfile } = useAuthStore()
 
-    const [isEditing, setIsEditing] = useState(false);
-    const [username, setUsername] = useState(user?.name || "Unknown");
-    const [email, setEmail] = useState(user?.email || "Unknown");
-    const [profileImage, setProfileImage] = useState(user?.profileImage || "");
-    const [isPasswordModalOpen, setPasswordModalOpen] = useState(false);
-    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
+    const [isEditing, setIsEditing] = useState(false)
+    const [username, setUsername] = useState(user?.name || "Unknown")
+    const [email, setEmail] = useState(user?.email || "Unknown")
+    const [profileImage, setProfileImage] = useState(user?.profileImage || "")
+    const [isPasswordModalOpen, setPasswordModalOpen] = useState(false)
+    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+        const file = e.target.files?.[0]
         if (file) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = () => setProfileImage(reader.result as string);
+            const reader = new FileReader()
+            reader.readAsDataURL(file)
+            reader.onloadend = () => setProfileImage(reader.result as string)
         }
-    };
+    }
 
     const handleSave = async () => {
-        if (!isEditing) { setIsEditing(true); return; }
-        setIsSaving(true);
-        const success = await updateProfile({ name: username, email, profileImage });
-        setIsSaving(false);
-        if (success) setIsEditing(false);
-    };
-
-    const handleDeleteConfirm = () => {
-        // TODO: call delete account action
-        setDeleteModalOpen(false);
-    };
+        if (!isEditing) { setIsEditing(true); return }
+        setIsSaving(true)
+        const success = await updateProfile({ name: username, email, profileImage })
+        setIsSaving(false)
+        if (success) setIsEditing(false)
+    }
 
     const accountCreated = user?.createdAt
         ? new Date(user.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
-        : "October 24, 2025";
-
-    const inputClasses = `${BASE_INPUT} ${isEditing ? ACTIVE_INPUT : DISABLED_INPUT}`;
+        : "October 24, 2025"
 
     return (
         <>
             <div className="relative z-10 w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8 mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {/* ── 1. Main Column: Personal Info ── */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="relative rounded-[17px] bg-border-gradient animate-border-shift p-[1px] shadow-sm transition-all hover:shadow-md h-full">
+                {/* Personal Info */}
+                <div className="lg:col-span-2">
+                    <div className="relative rounded-[17px] bg-border-gradient animate-border-shift p-[1px] shadow-sm hover:shadow-md h-full">
                         <section className="h-full overflow-hidden rounded-2xl bg-white/60 p-6 backdrop-blur-xl sm:p-8">
-
-                            {/* Header */}
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-xl font-bold tracking-tight text-slate-900">Personal Information</h2>
-                                <button
+                                <Button
                                     onClick={handleSave}
                                     disabled={isSaving}
-                                    className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-bold transition-all ${
-                                        isEditing
-                                            ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20 hover:bg-emerald-600 disabled:opacity-70 disabled:cursor-wait"
-                                            : "bg-slate-200/60 text-slate-700 hover:bg-slate-200"
-                                    }`}
+                                    variant={isEditing ? "default" : "outline"}
+                                    size="sm"
+                                    className="rounded-full"
                                 >
-                                    {isEditing ? (
-                                        <>{isSaving ? <Loader size={14} className="animate-spin" /> : <Check size={14} strokeWidth={3} />} Save</>
-                                    ) : (
-                                        <><Pencil size={14} /> Edit</>
-                                    )}
-                                </button>
+                                    {isEditing
+                                        ? <>{isSaving ? <Loader size={14} className="animate-spin" /> : <Check size={14} strokeWidth={3} />} Save</>
+                                        : <><Pencil size={14} /> Edit</>
+                                    }
+                                </Button>
                             </div>
 
                             {/* Avatar */}
@@ -102,18 +87,9 @@ export default function ProfileView({ user }: ProfileViewProps) {
                                             <label className="flex cursor-pointer items-center gap-1.5 text-emerald-600 transition-colors hover:text-emerald-700">
                                                 <Upload size={14} strokeWidth={2.5} />
                                                 <span>Upload new picture</span>
-                                                <input
-                                                    type="file"
-                                                    accept="image/png, image/jpeg, image/gif"
-                                                    className="hidden"
-                                                    onChange={handleImageUpload}
-                                                />
+                                                <input type="file" accept="image/png, image/jpeg, image/gif" className="hidden" onChange={handleImageUpload} />
                                             </label>
-                                            <button
-                                                type="button"
-                                                onClick={() => setProfileImage("")}
-                                                className="flex items-center gap-1.5 text-slate-500 transition-colors hover:text-red-500"
-                                            >
+                                            <button type="button" onClick={() => setProfileImage("")} className="flex items-center gap-1.5 text-slate-500 transition-colors hover:text-red-500">
                                                 <X size={15} strokeWidth={2.5} /> Remove
                                             </button>
                                         </div>
@@ -121,39 +97,38 @@ export default function ProfileView({ user }: ProfileViewProps) {
                                 </div>
                             </div>
 
-                            {/* Form */}
                             <form className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2" onSubmit={(e) => e.preventDefault()}>
                                 <div>
-                                    <label htmlFor="username" className="block text-xs font-bold tracking-wide text-slate-600">Username</label>
-                                    <input
-                                        type="text"
+                                    <Label htmlFor="username" className="mb-1.5">Username</Label>
+                                    <Input
                                         id="username"
+                                        type="text"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                         disabled={!isEditing}
-                                        className={inputClasses}
+                                        className="mt-1.5 h-11 rounded-[14px] text-[15px]"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="email" className="block text-xs font-bold tracking-wide text-slate-600">Email Address</label>
-                                    <input
-                                        type="email"
+                                    <Label htmlFor="email" className="mb-1.5">Email Address</Label>
+                                    <Input
                                         id="email"
+                                        type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         disabled={!isEditing}
-                                        className={inputClasses}
+                                        className="mt-1.5 h-11 rounded-[14px] text-[15px]"
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="accountCreated" className="block text-xs font-bold tracking-wide text-slate-600">Account Created</label>
-                                    <input
-                                        type="text"
+                                    <Label htmlFor="accountCreated" className="mb-1.5">Account Created</Label>
+                                    <Input
                                         id="accountCreated"
+                                        type="text"
                                         value={accountCreated}
                                         disabled
                                         readOnly
-                                        className={LOCKED_INPUT}
+                                        className="mt-1.5 h-11 rounded-[14px] text-[15px]"
                                     />
                                 </div>
                             </form>
@@ -161,11 +136,10 @@ export default function ProfileView({ user }: ProfileViewProps) {
                     </div>
                 </div>
 
-                {/* ── 2. Side Column: Security & Danger ── */}
+                {/* Side Column */}
                 <div className="lg:col-span-1 space-y-6 flex flex-col">
-
                     {/* Security */}
-                    <div className="flex-1 relative rounded-[17px] bg-border-gradient animate-border-shift p-[1px] shadow-sm transition-all hover:shadow-md">
+                    <div className="flex-1 relative rounded-[17px] bg-border-gradient animate-border-shift p-[1px] shadow-sm hover:shadow-md">
                         <section className="h-full overflow-hidden rounded-2xl bg-white/60 p-6 backdrop-blur-xl">
                             <div className="flex flex-col gap-4">
                                 <div>
@@ -178,20 +152,21 @@ export default function ProfileView({ user }: ProfileViewProps) {
                                     </p>
                                 </div>
                                 <div className="mt-auto pt-4">
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="outline"
                                         onClick={() => setPasswordModalOpen(true)}
-                                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-300/60 bg-white/50 px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-emerald-400 hover:text-emerald-600 hover:bg-white/80 hover:shadow-md"
+                                        className="w-full rounded-full border-slate-300/60 bg-white/50 text-slate-700 hover:border-emerald-400 hover:text-emerald-600 hover:bg-white/80"
                                     >
                                         <KeyRound size={15} /> Change Password
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </section>
                     </div>
 
                     {/* Danger Zone */}
-                    <div className="relative rounded-[17px] bg-border-gradient-danger animate-border-shift p-[1px] shadow-sm transition-all hover:shadow-md">
+                    <div className="relative rounded-[17px] bg-border-gradient-danger animate-border-shift p-[1px] shadow-sm hover:shadow-md">
                         <section className="overflow-hidden rounded-2xl bg-red-50/40 p-6 backdrop-blur-xl">
                             <div className="flex flex-col gap-4">
                                 <div>
@@ -202,36 +177,32 @@ export default function ProfileView({ user }: ProfileViewProps) {
                                         Permanently delete your account and all data. Irreversible.
                                     </p>
                                 </div>
-                                <div className="mt-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setDeleteModalOpen(true)}
-                                        className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-full border border-red-200/80 bg-white/60 px-5 py-2.5 text-sm font-bold text-red-600 shadow-sm backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:bg-red-50 hover:border-red-300 hover:shadow-md"
-                                    >
-                                        <Trash2 size={16} /> Delete Account
-                                    </button>
-                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setDeleteModalOpen(true)}
+                                    className="w-full rounded-full border-red-200/80 bg-white/60 text-red-600 hover:bg-red-50 hover:border-red-300"
+                                >
+                                    <Trash2 size={16} /> Delete Account
+                                </Button>
                             </div>
                         </section>
                     </div>
-
                 </div>
             </div>
 
-            {/* ── Modals ── */}
             {isPasswordModalOpen && (
                 <PasswordModal
                     onClose={() => setPasswordModalOpen(false)}
-                    inputClasses={MODAL_INPUT}
+                    inputClasses="mt-1.5 block w-full rounded-[14px] border border-emerald-500 bg-white/80 px-4 py-2.5 text-[15px] font-medium outline-none transition-all focus:bg-white focus:ring-4 focus:ring-emerald-100/50 shadow-sm"
                 />
             )}
-
             {isDeleteModalOpen && (
                 <DeleteAccountModal
                     onClose={() => setDeleteModalOpen(false)}
-                    onConfirm={handleDeleteConfirm}
+                    onConfirm={() => setDeleteModalOpen(false)}
                 />
             )}
         </>
-    );
+    )
 }

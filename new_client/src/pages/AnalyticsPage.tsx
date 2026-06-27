@@ -1,7 +1,9 @@
+import AnalyticsView from "../components/Analytics/AnalyticsView";
+
 export default function AnalyticsPage() {
     return (
         <main>
-            <h1>Analytics Page</h1>
+            <AnalyticsView />
         </main>
     );
 }

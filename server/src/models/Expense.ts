@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IExpense } from "../types";
+import { IExpense, TransactionType, RecurringFrequency } from "../types";
 
 const expenseSchema = new Schema<IExpense>(
     {
@@ -8,7 +8,13 @@ const expenseSchema = new Schema<IExpense>(
             ref: "User"
         },
         amount: {
-            type: Number
+            type: Number,
+            required: true
+        },
+        type: {
+            type: String,
+            enum: Object.values(TransactionType),
+            default: TransactionType.EXPENSE
         },
         category: {
             type: String,
@@ -20,7 +26,23 @@ const expenseSchema = new Schema<IExpense>(
             trim: true,
         },
         date: {
-            type: Date
+            type: Date,
+            default: Date.now
+        },
+        tags: {
+            type: [String],
+            default: []
+        },
+        isRecurring: {
+            type: Boolean,
+            default: false
+        },
+        frequency: {
+            type: String,
+            enum: Object.values(RecurringFrequency),
+        },
+        nextDueDate: {
+            type: Date,
         },
     },
     {
@@ -28,5 +50,7 @@ const expenseSchema = new Schema<IExpense>(
     }
 )
 
+expenseSchema.index({ userId: 1, isRecurring: 1, nextDueDate: 1 });
+
 const Expense = mongoose.model<IExpense>("Expense", expenseSchema)
-export default Expense;
+export default Expense;

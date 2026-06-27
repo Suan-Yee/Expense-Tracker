@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FiltersBar from "../components/Expenses/FiltersBar";
 import TransactionsTable from "../components/Expenses/TransactionsTable";
 import Pagination from "../components/Expenses/Pagination";
 import TransactionPanel from "../components/Expenses/TransactionPanel";
+import ExportModal from "../components/Expenses/ExportModal";
 import { useExpenseStore } from "../store/expenseStore";
 import ActionConfirmModal from "../components/Common/ActionConfirmModal";
 
@@ -18,8 +19,11 @@ export default function ExpensesPage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
-  const { expenses, getAllExpenses, deleteExpense, setFilters, filters, isLoading } = useExpenseStore();
+  const { expenses, getAllExpenses, deleteExpense, setFilters, filters, isLoading, currentPage = 1, itemsPerPage = 10 } = useExpenseStore();
+
+  const paginatedExpenses = expenses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Map backend sort string ("-date", "amount") to table sortConfig ({ key, direction })
   const sortConfig = filters.sort ? {
@@ -71,13 +75,22 @@ export default function ExpensesPage() {
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
           Expenses
         </h1>
-        <button
-          onClick={openAddPanel}
-          className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-600 active:translate-y-0"
-        >
-          <Plus size={16} strokeWidth={3} />
-          Add Expense
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsExportOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:translate-y-0"
+          >
+            <Download size={15} strokeWidth={2.5} />
+            Export
+          </button>
+          <button
+            onClick={openAddPanel}
+            className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-600 active:translate-y-0"
+          >
+            <Plus size={16} strokeWidth={3} />
+            Add Expense
+          </button>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -87,19 +100,19 @@ export default function ExpensesPage() {
         <motion.div 
             layout 
             className="flex flex-col flex-1 min-w-0"
-            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
         >
           <div className="flex flex-col h-full rounded-[20px] bg-white/70 backdrop-blur-xl border border-white/50 shadow-sm p-4 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
             <FiltersBar />
             
-            <div className="flex-1 mt-4 overflow-auto min-h-0 relative">
+            <div className="flex-1 mt-4 overflow-auto min-h-0 relative scroll-smooth [scrollbar-gutter:stable]">
                 {isLoading && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/40 backdrop-blur-[1px]">
                      <div className="size-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
                   </div>
                 )}
                 <TransactionsTable 
-                transactions={expenses} 
+                transactions={paginatedExpenses} 
                 isPanelOpen={isPanelOpen} 
                 onEdit={openEditPanel} 
                 onDelete={(id) => setTransactionToDelete(id)}
@@ -125,12 +138,12 @@ export default function ExpensesPage() {
           {isPanelOpen && (
             <motion.div
               initial={{ opacity: 0, width: 0, x: 20 }}
-              animate={{ opacity: 1, width: 400, x: 0 }}
+              animate={{ opacity: 1, width: "auto", x: 0 }}
               exit={{ opacity: 0, width: 0, x: 20 }}
-              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-              className="relative shrink-0"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="relative shrink-0 overflow-hidden"
             >
-              <div className="absolute inset-0 w-[400px]">
+              <div className="w-[310px] sm:w-[340px] xl:w-[380px] h-full">
                  <TransactionPanel 
                    transaction={editingTransaction} 
                    onClose={closePanel} 
@@ -152,6 +165,12 @@ export default function ExpensesPage() {
         confirmText="Yes, Delete"
         variant="danger"
         isLoading={isLoading}
+      />
+
+      <ExportModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        expenses={expenses}
       />
     </div>
   );

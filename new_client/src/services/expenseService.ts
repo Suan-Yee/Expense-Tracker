@@ -21,3 +21,8 @@ export const deleteExpense = async (id: string) => {
     const response = await api.delete<ApiResponse<Expense>>(`/expenses/${id}`);
     return response.data;
 }
+
+export const generateRecurring = async () => {
+    const response = await api.post<ApiResponse<{ generated: number }>>("/expenses/generate-recurring");
+    return response.data;
+}

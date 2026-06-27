@@ -1,290 +1,191 @@
 import { NextFunction, Request, Response } from "express";
-import { ExpenseCategory } from "../types";
+import { ExpenseCategory, RecurringFrequency, TransactionType } from "../types";
 import { asyncHandler, sendSuccess } from "../utils/responseHelpers";
 import { AppError } from "../middlewares/errorHandler";
 import Expense from "../models/Expense";
 
-// export const mockExpenses: Expense[] = [
-//     {
-//         id: "exp_001",
-//         userId: "user_001",
-//         amount: 12.5,
-//         category: ExpenseCategory.FOOD,
-//         description: "Lunch at cafe",
-//         date: new Date("2026-03-20"),
-//         createdAt: new Date("2026-03-20T12:30:00"),
-//         updatedAt: new Date("2026-03-20T12:30:00"),
-//     },
-//     {
-//         id: "exp_002",
-//         userId: "user_001",
-//         amount: 3.0,
-//         category: ExpenseCategory.TRANSPORT,
-//         description: "Bus fare",
-//         date: new Date("2026-03-21"),
-//         createdAt: new Date("2026-03-21T08:00:00"),
-//         updatedAt: new Date("2026-03-21T08:00:00"),
-//     },
-//     {
-//         id: "exp_003",
-//         userId: "user_002",
-//         amount: 45.99,
-//         category: ExpenseCategory.SHOPPING,
-//         description: "Clothes purchase",
-//         date: new Date("2026-03-18"),
-//         createdAt: new Date("2026-03-18T16:45:00"),
-//         updatedAt: new Date("2026-03-18T16:45:00"),
-//     },
-//     {
-//         id: "exp_004",
-//         userId: "user_001",
-//         amount: 120.0,
-//         category: ExpenseCategory.UTILITIES,
-//         description: "Electricity bill",
-//         date: new Date("2026-03-01"),
-//         createdAt: new Date("2026-03-01T09:15:00"),
-//         updatedAt: new Date("2026-03-01T09:15:00"),
-//     },
-//     {
-//         id: "exp_005",
-//         userId: "user_003",
-//         amount: 25.0,
-//         category: ExpenseCategory.ENTERTAINMENT,
-//         description: "Movie tickets",
-//         date: new Date("2026-03-22"),
-//         createdAt: new Date("2026-03-22T19:00:00"),
-//         updatedAt: new Date("2026-03-22T19:00:00"),
-//     },
-//     {
-//         id: "exp_006",
-//         userId: "user_002",
-//         amount: 60.0,
-//         category: ExpenseCategory.HEALTHCARE,
-//         description: "Doctor consultation",
-//         date: new Date("2026-03-15"),
-//         createdAt: new Date("2026-03-15T10:20:00"),
-//         updatedAt: new Date("2026-03-15T10:20:00"),
-//     },
-//     {
-//         id: "exp_007",
-//         userId: "user_001",
-//         amount: 15.75,
-//         category: ExpenseCategory.FOOD,
-//         description: "Dinner takeaway",
-//         date: new Date("2026-03-23"),
-//         createdAt: new Date("2026-03-23T20:10:00"),
-//         updatedAt: new Date("2026-03-23T20:10:00"),
-//     },
-//     {
-//         id: "exp_008",
-//         userId: "user_003",
-//         amount: 200.0,
-//         category: ExpenseCategory.EDUCATION,
-//         description: "Online course fee",
-//         date: new Date("2026-03-10"),
-//         createdAt: new Date("2026-03-10T14:00:00"),
-//         updatedAt: new Date("2026-03-10T14:00:00"),
-//     },
-//     {
-//         id: "exp_009",
-//         userId: "user_002",
-//         amount: 8.5,
-//         category: ExpenseCategory.TRANSPORT,
-//         description: "Taxi ride",
-//         date: new Date("2026-03-24"),
-//         createdAt: new Date("2026-03-24T18:25:00"),
-//         updatedAt: new Date("2026-03-24T18:25:00"),
-//     },
-//     {
-//         id: "exp_010",
-//         userId: "user_001",
-//         amount: 5.0,
-//         category: ExpenseCategory.OTHER,
-//         description: "Stationery",
-//         date: new Date("2026-03-19"),
-//         createdAt: new Date("2026-03-19T11:05:00"),
-//         updatedAt: new Date("2026-03-19T11:05:00"),
-//     },
-//     {
-//         id: "exp_011",
-//         userId: "user_001",
-//         amount: 18.25,
-//         category: ExpenseCategory.FOOD,
-//         description: "Breakfast",
-//         date: new Date("2026-04-02"),
-//         createdAt: new Date("2026-04-02T08:10:00"),
-//         updatedAt: new Date("2026-04-02T08:10:00"),
-//     },
-//     {
-//         id: "exp_012",
-//         userId: "user_001",
-//         amount: 40.0,
-//         category: ExpenseCategory.TRANSPORT,
-//         description: "Monthly bus pass",
-//         date: new Date("2026-04-03"),
-//         createdAt: new Date("2026-04-03T07:30:00"),
-//         updatedAt: new Date("2026-04-03T07:30:00"),
-//     },
-// ];
+// ---------- helpers ----------
+
+function computeNextDueDate(from: Date, frequency: RecurringFrequency): Date {
+    const d = new Date(from);
+    switch (frequency) {
+        case RecurringFrequency.DAILY:   d.setDate(d.getDate() + 1); break;
+        case RecurringFrequency.WEEKLY:  d.setDate(d.getDate() + 7); break;
+        case RecurringFrequency.MONTHLY: d.setMonth(d.getMonth() + 1); break;
+        case RecurringFrequency.YEARLY:  d.setFullYear(d.getFullYear() + 1); break;
+    }
+    return d;
+}
+
+// ---------- GET all ----------
 
 export const getAllExpenses = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
         const userId = req.userId;
+        const { category, sort, search, startDate, endDate, tags, isRecurring } = req.query;
 
-        // const userExpenses = mockExpenses.filter(expense => expense.userId === userId);
-        const { category, sort } = req.query;
+        const filter: any = { userId };
 
-        const filter: {userId: string, category?: string} = {
-            userId,
+        if (category && typeof category === "string" && category !== "all") {
+            filter.category = category;
         }
-        
-        if (category && typeof category === "string") {
-            filter.category = category
+        if (search && typeof search === "string") {
+            filter.description = { $regex: search, $options: "i" };
         }
+        if ((startDate && typeof startDate === "string") || (endDate && typeof endDate === "string")) {
+            filter.date = {};
+            if (startDate) filter.date.$gte = new Date(startDate as string);
+            if (endDate)   filter.date.$lte = new Date(endDate as string);
+        }
+        if (tags && typeof tags === "string") {
+            const tagList = tags.split(",").map(t => t.trim()).filter(Boolean);
+            if (tagList.length) filter.tags = { $in: tagList };
+        }
+        if (isRecurring === "true") {
+            filter.isRecurring = true;
+        }
+
         let query = Expense.find(filter);
 
         if (sort && typeof sort === "string") {
-            if (sort === "amount") {
-                // copiedExpenses.sort((a, b) => a.amount - b.amount);
-                query = query.sort({ amount: 1 });
-            } else if (sort === "-amount") {
-                // copiedExpenses.sort((a, b) => b.amount - a.amount);
-                query = query.sort({ amount: -1 });
-            } else if (sort === "date") {
-                // copiedExpenses.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                query = query.sort({ date: 1 });
-            } else if (sort === "-date"){
-                // copiedExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            const isDesc = sort.startsWith("-");
+            const field = isDesc ? sort.slice(1) : sort;
+            const validFields = ["amount", "date", "description", "category"];
+            if (validFields.includes(field)) {
+                query = query.sort({ [field]: isDesc ? -1 : 1 });
+            } else {
                 query = query.sort({ date: -1 });
             }
+        } else {
+            query = query.sort({ date: -1 });
         }
-        const expenses = await query;
 
+        const expenses = await query;
         sendSuccess(res, expenses, `Found ${expenses.length} expenses.`);
     }
-)
+);
+
+// ---------- GET by id ----------
 
 export const getExpenseById = asyncHandler(
-    async(req: Request, res: Response, next: NextFunction) => {
-    
+    async (req: Request, res: Response, next: NextFunction) => {
         const userId = req.userId;
         const { id } = req.params;
 
         const expense = await Expense.findById(id);
-
-        if (!expense) {
-            throw new AppError("Expense Not Found", 404);
-        }
-
-        if(expense.userId.toString() !== userId){
+        if (!expense) throw new AppError("Expense Not Found", 404);
+        if (expense.userId.toString() !== userId)
             throw new AppError("Unauthorized access to this expense", 403);
-        }
 
-        sendSuccess(res, expense, "Expense retrieved successfully.")
+        sendSuccess(res, expense, "Expense retrieved successfully.");
     }
-)
+);
+
+// ---------- POST create ----------
 
 export const createExpense = asyncHandler(
     async (req: Request, res: Response) => {
-    
-        const { amount, category, description, date } = req.body
-        const userId = req.userId
+        const { amount, type, category, description, date, tags, isRecurring, frequency } = req.body;
+        const userId = req.userId;
 
-        if (!amount) {
-            throw new AppError("Amount is required", 400);
-        }
-        if (!category) {
-            throw new AppError("Category is required", 400);
-        }
-        if (!description) {
-            throw new AppError("Description is required", 400);
-        }
-        if (typeof amount !== "number") {
-            throw new AppError("Amount must be a number", 400);
-        }
-        if (amount <= 0) {
-            throw new AppError("Amount must be greater than 0", 400);
-        }
-        if (amount > 1000000) {
-            throw new AppError("Amount cannot exceed 1,000,000", 400);
+        if (!amount)      throw new AppError("Amount is required", 400);
+        if (!type)        throw new AppError("Transaction type is required", 400);
+        if (!category)    throw new AppError("Category is required", 400);
+        if (!description) throw new AppError("Description is required", 400);
+        if (typeof amount !== "number") throw new AppError("Amount must be a number", 400);
+        if (amount <= 0)  throw new AppError("Amount must be greater than 0", 400);
+        if (amount > 1000000) throw new AppError("Amount cannot exceed 1,000,000", 400);
+
+        const validTypes = Object.values(TransactionType);
+        if (!validTypes.includes(type))
+            throw new AppError(`Invalid transaction type. Must be one of: ${validTypes.join(", ")}`, 400);
+
+        const validCategories = Object.values(ExpenseCategory);
+        if (!validCategories.includes(category))
+            throw new AppError(`Invalid category. Must be one of: ${validCategories.join(", ")}`, 400);
+
+        if (description.length < 3)   throw new AppError("Description must be at least 3 characters", 400);
+        if (description.length > 100) throw new AppError("Description cannot exceed 100 characters", 400);
+
+        // Validate tags
+        const cleanedTags: string[] = [];
+        if (tags && Array.isArray(tags)) {
+            for (const tag of tags) {
+                if (typeof tag !== "string") throw new AppError("Each tag must be a string", 400);
+                const t = tag.trim().toLowerCase();
+                if (t.length > 30) throw new AppError("Each tag must be 30 characters or less", 400);
+                if (t) cleanedTags.push(t);
+            }
         }
 
-        const validCategories = Object.values(ExpenseCategory)
-        if (!validCategories.includes(category)) {
-            throw new AppError(
-                `Invalid category. Must be on of: ${validCategories.join(", ")}`, 400
-            );
-        }
-
-        if (description.length < 3) {
-            throw new AppError("Description must be at least 3 characters", 400);
-        }
-        if (description.length > 100) {
-            throw new AppError("Description cannot exceed 100 characters", 400);
+        // Validate recurring
+        let resolvedFrequency: RecurringFrequency | undefined;
+        let nextDueDate: Date | undefined;
+        if (isRecurring) {
+            if (!frequency) throw new AppError("frequency is required when isRecurring is true", 400);
+            const validFreqs = Object.values(RecurringFrequency);
+            if (!validFreqs.includes(frequency))
+                throw new AppError(`Invalid frequency. Must be one of: ${validFreqs.join(", ")}`, 400);
+            resolvedFrequency = frequency;
+            const baseDate = date ? new Date(date) : new Date();
+            nextDueDate = computeNextDueDate(baseDate, frequency);
         }
 
         const newExpense = new Expense({
             userId,
             amount,
+            type,
             category,
             description,
             date: date ? new Date(date) : new Date(),
-        })
+            tags: cleanedTags,
+            isRecurring: !!isRecurring,
+            frequency: resolvedFrequency,
+            nextDueDate,
+        });
 
-        const createdExpenses = await newExpense.save();
-
-        sendSuccess(res, createdExpenses, "Expense created successfully", 201);
+        const saved = await newExpense.save();
+        sendSuccess(res, saved, "Expense created successfully", 201);
     }
-)
+);
+
+// ---------- PUT update ----------
 
 export const updateExpense = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-    
         const userId = req.userId;
-        const { id } = req.params
-        const { amount, category, description, date } = req.body
+        const { id } = req.params;
+        const { amount, type, category, description, date, tags, isRecurring, frequency } = req.body;
 
-        // const expenseId = mockExpenses.findIndex(expense => expense.id === id && expense.userId === userId)
         const expense = await Expense.findById(id);
-
-        if (!expense) {
-            throw new AppError("Expense not found", 404);
-        }
-
-        if (expense.userId.toString() !== userId){
+        if (!expense) throw new AppError("Expense not found", 404);
+        if (expense.userId.toString() !== userId)
             throw new AppError("Unauthorized access to this expense", 403);
+
+        if (type !== undefined) {
+            const validTypes = Object.values(TransactionType);
+            if (!validTypes.includes(type))
+                throw new AppError(`Invalid transaction type. Must be one of: ${validTypes.join(", ")}`, 400);
+            expense.type = type;
         }
 
         if (amount !== undefined) {
-            if (typeof amount !== "number") {
-                throw new AppError("Amount must be a number", 400);
-            }
-
-            if (amount <= 0 ) {
-                throw new AppError("Amount must be greater than 0", 400);
-            }
-
-            if (amount > 1000000) {
-                throw new AppError("Amount cannot exceed 1,000,000", 400);
-            }
+            if (typeof amount !== "number") throw new AppError("Amount must be a number", 400);
+            if (amount <= 0) throw new AppError("Amount must be greater than 0", 400);
+            if (amount > 1000000) throw new AppError("Amount cannot exceed 1,000,000", 400);
             expense.amount = amount;
         }
 
         if (category !== undefined) {
             const validCategories = Object.values(ExpenseCategory);
-            if (!validCategories.includes(category)) {
-                throw new AppError(`Invalid category. Must be one of: ${validCategories.join(", ")}`, 400)
-            }
+            if (!validCategories.includes(category))
+                throw new AppError(`Invalid category. Must be one of: ${validCategories.join(", ")}`, 400);
             expense.category = category;
         }
 
         if (description !== undefined) {
-            if (description.length < 3 ) {
-                throw new AppError("Description must be at least 3 characters", 400);
-            }
-            if (description.length > 100) {
-                throw new AppError("Description cannot exceed 100 characters", 400);
-            }
+            if (description.length < 3)   throw new AppError("Description must be at least 3 characters", 400);
+            if (description.length > 100) throw new AppError("Description cannot exceed 100 characters", 400);
             expense.description = description;
         }
 
@@ -292,30 +193,99 @@ export const updateExpense = asyncHandler(
             expense.date = new Date(date);
         }
 
-        const updatedExpense = await expense.save();
+        if (tags !== undefined && Array.isArray(tags)) {
+            const cleanedTags: string[] = [];
+            for (const tag of tags) {
+                const t = (tag as string).trim().toLowerCase();
+                if (t.length > 30) throw new AppError("Each tag must be 30 characters or less", 400);
+                if (t) cleanedTags.push(t);
+            }
+            expense.tags = cleanedTags;
+        }
 
-        sendSuccess(res, updatedExpense, "Expense updated successfully")
+        if (isRecurring !== undefined) {
+            expense.isRecurring = !!isRecurring;
+            if (!isRecurring) {
+                expense.frequency = undefined;
+                expense.nextDueDate = undefined;
+            }
+        }
+
+        if (isRecurring && frequency !== undefined) {
+            const validFreqs = Object.values(RecurringFrequency);
+            if (!validFreqs.includes(frequency))
+                throw new AppError(`Invalid frequency. Must be one of: ${validFreqs.join(", ")}`, 400);
+            expense.frequency = frequency;
+            const baseDate = expense.date || new Date();
+            expense.nextDueDate = computeNextDueDate(baseDate, frequency);
+        }
+
+        const updated = await expense.save();
+        sendSuccess(res, updated, "Expense updated successfully");
     }
-)
+);
+
+// ---------- DELETE ----------
 
 export const deleteExpense = asyncHandler(
     async (req: Request, res: Response) => {
-
         const userId = req.userId;
-        const { id } = req.params
+        const { id } = req.params;
 
         const expense = await Expense.findById(id);
-
-        if (!expense) {
-            throw new AppError("Expense not found", 404);
-        }
-
-        if (expense.userId.toString() !== userId){
+        if (!expense) throw new AppError("Expense not found", 404);
+        if (expense.userId.toString() !== userId)
             throw new AppError("Unauthorized access to this expense", 403);
-        }
 
         await Expense.findByIdAndDelete(id);
-
         sendSuccess(res, null, "Expense deleted successfully.");
     }
-)
+);
+
+// ---------- POST generate-recurring ----------
+// Called on app load — creates missed occurrences for all due recurring transactions
+
+export const generateRecurring = asyncHandler(
+    async (req: Request, res: Response) => {
+        const userId = req.userId;
+        const now = new Date();
+
+        const dueRecurring = await Expense.find({
+            userId,
+            isRecurring: true,
+            nextDueDate: { $lte: now },
+        });
+
+        if (dueRecurring.length === 0) {
+            return sendSuccess(res, { generated: 0 }, "No recurring expenses due.");
+        }
+
+        let generated = 0;
+
+        for (const source of dueRecurring) {
+            // Keep generating until nextDueDate is in the future
+            while (source.nextDueDate && source.nextDueDate <= now) {
+                const newEntry = new Expense({
+                    userId:      source.userId,
+                    amount:      source.amount,
+                    type:        source.type,
+                    category:    source.category,
+                    description: source.description,
+                    date:        source.nextDueDate,
+                    tags:        source.tags,
+                    isRecurring: false, // generated copies are not templates
+                    frequency:   undefined,
+                    nextDueDate: undefined,
+                });
+                await newEntry.save();
+                generated++;
+
+                // Advance the template's nextDueDate
+                source.nextDueDate = computeNextDueDate(source.nextDueDate, source.frequency!);
+            }
+            await source.save();
+        }
+
+        sendSuccess(res, { generated }, `Generated ${generated} recurring expense(s).`);
+    }
+);

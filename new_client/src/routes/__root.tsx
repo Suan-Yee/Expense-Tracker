@@ -27,7 +27,7 @@ function RootLayout() {
             {isAuthenticated && <Navigation />}
 
             {/* Shift content to the right if Sidebar is rendered */}
-            <main className={`flex-1 transition-all ${isAuthenticated ? "ml-64" : ""}`}>
+            <main className={`flex-1 min-w-0 overflow-x-hidden transition-all ${isAuthenticated ? "ml-64" : ""}`}>
                 <Outlet />
             </main>
         </div>

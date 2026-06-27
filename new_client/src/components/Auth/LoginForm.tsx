@@ -1,27 +1,26 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
-import { useState } from "react";
-import type { ChangeEvent } from "react";
-import { useAuthStore } from "../../store/authStore";
-import { motion, AnimatePresence } from "framer-motion";
-import AuthFormField from "./AuthFormField";
-
-const INPUT_CLASS =
-  "h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-[15px] text-slate-700 outline-none transition-all duration-300 ease-out placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-70";
+import { Link, useNavigate } from "@tanstack/react-router"
+import { Eye, EyeOff, Lock, Mail } from "lucide-react"
+import { useState } from "react"
+import type { ChangeEvent } from "react"
+import { useAuthStore } from "../../store/authStore"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "../ui/button"
+import { Input } from "../ui/input"
+import AuthFormField from "./AuthFormField"
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
-  const navigate = useNavigate();
-  const { login, isLoading, error } = useAuthStore();
+  const navigate = useNavigate()
+  const { login, isLoading, error } = useAuthStore()
 
   async function handleSubmit(event: ChangeEvent<HTMLFormElement>) {
-    event.preventDefault();
-    await login(email, password);
-    const { isAuthenticated } = useAuthStore.getState();
-    if (isAuthenticated) navigate({ to: "/dashboard" });
+    event.preventDefault()
+    await login(email, password)
+    const { isAuthenticated } = useAuthStore.getState()
+    if (isAuthenticated) navigate({ to: "/dashboard" })
   }
 
   return (
@@ -58,7 +57,7 @@ export default function LoginForm() {
           <motion.div layout className="space-y-4">
             <AuthFormField id="email" label="EMAIL">
               <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 id="email"
                 type="email"
                 required
@@ -66,13 +65,13 @@ export default function LoginForm() {
                 disabled={isLoading}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="john@example.com"
-                className={INPUT_CLASS}
+                className="h-11 pl-10 text-[15px]"
               />
             </AuthFormField>
 
             <AuthFormField id="password" label="PASSWORD">
               <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <input
+              <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 required
@@ -80,13 +79,13 @@ export default function LoginForm() {
                 disabled={isLoading}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="********"
-                className={`${INPUT_CLASS} pr-10`}
+                className="h-11 pl-10 pr-10 text-[15px]"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
                 disabled={isLoading}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -95,23 +94,20 @@ export default function LoginForm() {
           </motion.div>
 
           <motion.div layout className="mt-3 text-right">
-            <button
-              type="button"
-              className="text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700"
-            >
+            <button type="button" className="text-xs font-semibold text-emerald-600 transition-colors hover:text-emerald-700">
               Forgot password?
             </button>
           </motion.div>
 
-          <motion.button
-            layout
-            whileTap={{ scale: isLoading ? 1 : 0.98 }}
-            type="submit"
-            disabled={isLoading}
-            className="mt-4 h-11 w-full rounded-xl border border-emerald-600 bg-emerald-600 text-[15px] font-bold text-white shadow-[0_14px_28px_-16px_rgba(5,150,105,0.85)] transition-[background,border] duration-300 ease-out hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-65"
-          >
-            {isLoading ? "Logging in..." : "Log in"}
-          </motion.button>
+          <motion.div layout className="mt-4">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="h-11 w-full rounded-xl text-[15px]"
+            >
+              {isLoading ? "Logging in..." : "Log in"}
+            </Button>
+          </motion.div>
 
           <motion.p layout className="mt-5 text-center text-sm text-slate-500">
             New here?{" "}
@@ -122,5 +118,5 @@ export default function LoginForm() {
         </motion.form>
       </div>
     </section>
-  );
+  )
 }

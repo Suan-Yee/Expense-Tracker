@@ -24,10 +24,10 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
 export const updateProfile = asyncHandler(async (req: Request, res: Response) => {
 
     const userId = req.userId;
-    const { name, email, password } = req.body;
+    const { name, email, profileImage } = req.body;
 
-    if (!name && !email && !password) {
-        throw new AppError("please provide name, email or password!", 400)
+    if (!name && !email && !profileImage) {
+        throw new AppError("please provide name, email or profileImage!", 400)
     }
 
     if (name && name.trim().length < 2) {
@@ -38,17 +38,6 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
         const emailRegax = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
         if (!emailRegax.test(email)) {
             throw new AppError("Invalid email format", 400);
-        }
-    }
-
-    if (password) {
-        if (password.length < 8) {
-            throw new AppError("password must be at least 8 characters.", 400)
-        }
-
-        const passwordRegax = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-        if (!passwordRegax.test(password)) {
-            throw new AppError("password must be contain uppercase, lowercase, number and special character.", 400)
         }
     }
 
@@ -76,9 +65,8 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
         user.email = email;
     }
 
-    if (password) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        user.password = hashedPassword;
+    if (profileImage !== undefined) {
+        user.profileImage = profileImage;
     }
 
     const updatedUser = await user.save();
@@ -86,4 +74,49 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response) =>
     const { password: _, ...userWithoutPassword } = userObject;
 
     sendSuccess(res, userWithoutPassword, "Profile uploaded successful.", 200);
+});
+
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.userId;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        throw new AppError("Please provide current and new password!", 400);
+    }
+
+    if (newPassword.length < 8) {
+        throw new AppError("Password must be at least 8 characters.", 400);
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+        throw new AppError("Password must contain uppercase, lowercase, number and special character.", 400);
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password || "");
+    if (!isMatch) {
+        throw new AppError("Incorrect current password", 401);
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    sendSuccess(res, null, "Password updated successfully", 200);
+});
+
+export const deleteAccount = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.userId;
+
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    sendSuccess(res, null, "Account deleted successfully", 200);
 });
