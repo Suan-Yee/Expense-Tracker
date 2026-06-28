@@ -1,8 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
-import HomePage from "../pages/HomePage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useAuthStore } from "../store/authStore";
 
 export const Route = createFileRoute("/")({
-    component: HomePage,
+    beforeLoad: () => {
+        const { isAuthenticated } = useAuthStore.getState();
+
+        throw redirect({
+            to: isAuthenticated ? "/dashboard" : "/login",
+        });
+    },
     context: () => (
         {
             title: "Home - ExpenseTracker"

@@ -69,23 +69,23 @@ export default function ExpensesPage() {
   };
 
   return (
-    <div className="relative isolate flex h-[100svh] w-full flex-col overflow-hidden px-4 py-8 sm:px-8 lg:px-10">
+    <div className="relative isolate flex min-h-[100svh] w-full flex-col overflow-hidden px-4 py-6 sm:px-8 lg:h-[100svh] lg:px-10 lg:py-8">
       {/* Header section */}
-      <div className="z-10 flex w-full items-center justify-between mb-8">
+      <div className="z-10 mb-6 flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:mb-8">
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
           Expenses
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setIsExportOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md active:translate-y-0"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/78 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <Download size={15} strokeWidth={2.5} />
             Export
           </button>
           <button
             onClick={openAddPanel}
-            className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-600 active:translate-y-0"
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-emerald-500/20 transition-all hover:bg-emerald-700 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400"
           >
             <Plus size={16} strokeWidth={3} />
             Add Expense
@@ -94,7 +94,7 @@ export default function ExpensesPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="z-10 flex w-full flex-1 gap-6 min-h-0">
+      <div className="z-10 flex w-full flex-1 flex-col gap-6 overflow-hidden lg:min-h-0 lg:flex-row">
         
         {/* Left Side: Table & Filters */}
         <motion.div 
@@ -102,7 +102,7 @@ export default function ExpensesPage() {
             className="flex flex-col flex-1 min-w-0"
             transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-          <div className="flex flex-col h-full rounded-[20px] bg-white/70 backdrop-blur-xl border border-white/50 shadow-sm p-4 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+          <div className="flex h-full flex-col overflow-hidden rounded-lg border border-white/60 bg-white/78 p-4 shadow-sm shadow-slate-200/50 backdrop-blur-xl sm:p-6 dark:border-slate-800 dark:bg-slate-900/78 dark:shadow-slate-950/40">
             <FiltersBar />
             
             <div className="flex-1 mt-4 overflow-auto min-h-0 relative scroll-smooth [scrollbar-gutter:stable]">

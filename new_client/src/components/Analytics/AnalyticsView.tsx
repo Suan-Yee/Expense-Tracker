@@ -4,6 +4,8 @@ import AnalyticsHeader from "./AnalyticsHeader";
 import AnalyticsKPIs from "./AnalyticsKPIs";
 import AnalyticsCharts from "./AnalyticsCharts";
 import AnalyticsTables from "./AnalyticsTables";
+import PeriodFilterBar from "../Common/PeriodFilterBar";
+
 
 export default function AnalyticsView() {
     const {
@@ -11,11 +13,7 @@ export default function AnalyticsView() {
         trends,
         categoryData,
         monthlyData,
-        dashFilters,
         selectedYear,
-        isLoading,
-        setFilters,
-        setSelectedYear,
         fetchDashboard
     } = useAnalyticsStore();
 
@@ -31,14 +29,9 @@ export default function AnalyticsView() {
     return (
         <div className="flex flex-col gap-8 pb-12 animate-in fade-in duration-500 max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 mt-8">
             <div className="space-y-8">
-                <AnalyticsHeader
-                    range={dashFilters.range}
-                    selectedYear={selectedYear}
-                    isLoading={isLoading}
-                    onRangeChange={(val) => setFilters({ ...dashFilters, range: val, year: new Date().getFullYear().toString() })}
-                    onYearChange={(val) => setSelectedYear(val)}
-                />
-
+                <AnalyticsHeader />
+                <div></div>
+                <PeriodFilterBar />
                 <AnalyticsKPIs
                     totalInc={totalInc}
                     totalExp={totalExp}

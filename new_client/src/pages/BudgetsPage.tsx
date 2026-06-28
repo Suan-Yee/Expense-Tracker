@@ -63,26 +63,26 @@ export default function BudgetsPage() {
     };
 
     return (
-        <div className="relative isolate flex h-[100svh] w-full flex-col overflow-hidden px-4 py-8 sm:px-8 lg:px-10">
+        <div className="relative isolate flex min-h-[100svh] w-full flex-col overflow-hidden px-4 py-6 sm:px-8 lg:h-[100svh] lg:px-10 lg:py-8">
             {/* Header */}
-            <div className="z-10 flex w-full flex-wrap items-center justify-between gap-4 mb-6">
-                <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">Budgets</h1>
+            <div className="z-10 mb-6 flex w-full flex-wrap items-center justify-between gap-4">
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white">Budgets</h1>
 
                 <div className="flex items-center gap-3">
                     {/* Month navigator */}
-                    <div className="flex items-center gap-1 rounded-xl bg-white/70 border border-white/60 backdrop-blur-xl shadow-sm px-1 py-1">
+                    <div className="flex items-center gap-1 rounded-lg border border-white/60 bg-white/70 px-1 py-1 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/78">
                         <button
                             onClick={prevMonth}
-                            className="flex size-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                            className="flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                         >
                             <ChevronLeft size={16} strokeWidth={2.5} />
                         </button>
-                        <span className="px-2 text-[14px] font-bold text-slate-700 min-w-[130px] text-center">
+                        <span className="px-2 text-[14px] font-bold text-slate-700 dark:text-slate-200 min-w-[130px] text-center">
                             {MONTH_NAMES[filters.month]} {filters.year}
                         </span>
                         <button
                             onClick={nextMonth}
-                            className="flex size-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                            className="flex size-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                         >
                             <ChevronRight size={16} strokeWidth={2.5} />
                         </button>
@@ -90,7 +90,7 @@ export default function BudgetsPage() {
 
                     <button
                         onClick={openAdd}
-                        className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-600 active:translate-y-0"
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-emerald-500/20 transition-all hover:bg-emerald-700 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400"
                     >
                         <Plus size={16} strokeWidth={3} />
                         Add Budget
@@ -118,11 +118,11 @@ export default function BudgetsPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="flex flex-col items-center justify-center h-64 gap-4"
                     >
-                        <div className="flex size-16 items-center justify-center rounded-2xl bg-emerald-50 ring-1 ring-emerald-200">
-                            <PieChart size={28} className="text-emerald-500" strokeWidth={1.5} />
+                        <div className="flex size-16 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 ring-1 ring-emerald-200 dark:ring-emerald-800/50">
+                            <PieChart size={28} className="text-emerald-500 dark:text-emerald-400" strokeWidth={1.5} />
                         </div>
                         <div className="text-center">
-                            <p className="text-[16px] font-bold text-slate-700">No budgets yet</p>
+                            <p className="text-[16px] font-bold text-slate-700 dark:text-white">No budgets yet</p>
                             <p className="text-[13px] text-slate-400 mt-1">
                                 Set spending limits for {MONTH_NAMES[filters.month]} to track your goals.
                             </p>

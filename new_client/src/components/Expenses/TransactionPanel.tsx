@@ -119,13 +119,13 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
   )
 
   return (
-    <div className="flex h-full w-full flex-col rounded-[20px] bg-white/95 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white">
+    <div className="flex h-full w-full flex-col rounded-[20px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white dark:border-slate-800">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-        <h2 className="text-lg font-bold text-slate-800">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+        <h2 className="text-lg font-bold text-slate-800 dark:text-white">
           {isEdit ? "Transaction Details" : "New Transaction"}
         </h2>
-        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full text-slate-400 hover:text-slate-700">
+        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
           <X size={18} strokeWidth={2.5} />
         </Button>
       </div>
@@ -134,8 +134,8 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
 
         {isEdit && (
           <div className="flex flex-col items-center mb-8">
-            <h3 className="text-lg font-bold text-slate-800">{description || "No Description"}</h3>
-            <p className={`text-2xl font-black tracking-tight ${parseFloat(amount) >= 0 ? "text-emerald-500" : "text-slate-800"}`}>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white">{description || "No Description"}</h3>
+            <p className={`text-2xl font-black tracking-tight ${parseFloat(amount) >= 0 ? "text-emerald-500 dark:text-emerald-400" : "text-slate-800 dark:text-white"}`}>
               {parseFloat(amount) >= 0 ? "+" : ""}{formatCurrency(parseFloat(amount) || 0)}
             </p>
             <p className="text-xs font-semibold text-slate-400 mt-1">
@@ -145,7 +145,7 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
               <motion.span
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-violet-100 px-3 py-1 text-[11px] font-bold text-violet-600"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-violet-100 dark:bg-violet-950/80 dark:text-violet-300 dark:border dark:border-violet-800/50 px-3 py-1 text-[11px] font-bold text-violet-600"
               >
                 <RefreshCw size={10} strokeWidth={3} />
                 Recurring · {frequency}
@@ -155,7 +155,7 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
         )}
 
         {localError && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50/90 px-3 py-2.5 text-[13px] font-medium text-red-600 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="mb-6 rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50/90 dark:bg-red-950/80 px-3 py-2.5 text-[13px] font-medium text-red-600 dark:text-red-300 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
             {localError}
           </div>
         )}
@@ -167,16 +167,16 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
             <Label className="mb-2.5">Transaction Type</Label>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { value: TransactionType.EXPENSE, label: "Expense", icon: <ArrowDownCircle size={16} />, active: "bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-200" },
-                { value: TransactionType.INCOME,  label: "Income",  icon: <ArrowUpCircle size={16} />,  active: "bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-100" },
-                { value: TransactionType.SAVING,  label: "Saving",  icon: <PiggyBank size={16} />,      active: "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100" },
+                { value: TransactionType.EXPENSE, label: "Expense", icon: <ArrowDownCircle size={16} />, active: "bg-slate-900 dark:bg-slate-800 border-slate-900 dark:border-slate-700 text-white shadow-lg shadow-slate-200 dark:shadow-none" },
+                { value: TransactionType.INCOME,  label: "Income",  icon: <ArrowUpCircle size={16} />,  active: "bg-emerald-500 dark:bg-emerald-600 border-emerald-500 dark:border-emerald-600 text-white shadow-lg shadow-emerald-100 dark:shadow-none" },
+                { value: TransactionType.SAVING,  label: "Saving",  icon: <PiggyBank size={16} />,      active: "bg-blue-600 dark:bg-blue-600 border-blue-600 dark:border-blue-600 text-white shadow-lg shadow-blue-100 dark:shadow-none" },
               ].map((t) => (
                 <button
                   key={t.value}
                   type="button"
                   onClick={() => setType(t.value)}
                   className={`flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[12px] font-bold transition-all border-2 ${
-                    type === t.value ? t.active : "bg-white border-slate-100 text-slate-500 hover:border-slate-200"
+                    type === t.value ? t.active : "bg-white dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-200 dark:hover:border-slate-700"
                   }`}
                 >
                   {t.icon}
@@ -238,7 +238,7 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
               Tags
               <span className="text-[11px] font-normal text-slate-400 ml-1">Press Enter or comma to add</span>
             </Label>
-            <div className="min-h-[42px] rounded-xl border border-slate-200 bg-white/60 px-3 py-2 flex flex-wrap gap-1.5 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
+            <div className="min-h-[42px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/60 px-3 py-2 flex flex-wrap gap-1.5 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 dark:focus-within:ring-emerald-950 transition-all">
               <AnimatePresence mode="popLayout">
                 {tags.map(tag => (
                   <motion.span
@@ -248,10 +248,10 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.7, opacity: 0 }}
                     transition={{ duration: 0.15 }}
-                    className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[12px] font-semibold text-emerald-700"
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 px-2.5 py-0.5 text-[12px] font-semibold text-emerald-700 dark:text-emerald-300 dark:border dark:border-emerald-800/50"
                   >
                     #{tag}
-                    <button type="button" onClick={() => removeTag(tag)} className="ml-0.5 text-emerald-500 hover:text-emerald-700">
+                    <button type="button" onClick={() => removeTag(tag)} className="ml-0.5 text-emerald-500 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-200">
                       <XSmall size={10} strokeWidth={3} />
                     </button>
                   </motion.span>
@@ -264,29 +264,29 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
                 onKeyDown={handleTagKeyDown}
                 onBlur={() => tagInput && addTag(tagInput)}
                 placeholder={tags.length === 0 ? "e.g. work, tax-deductible..." : ""}
-                className="flex-1 min-w-[80px] bg-transparent text-[13px] text-slate-700 outline-none placeholder:text-slate-300"
+                className="flex-1 min-w-[80px] bg-transparent text-[13px] text-slate-700 dark:text-slate-200 outline-none placeholder:text-slate-300 dark:placeholder:text-slate-500"
               />
             </div>
           </div>
 
           {/* Recurring toggle */}
-          <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4 space-y-3">
+          <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 p-4 space-y-3">
             <button
               type="button"
               onClick={() => setIsRecurring(v => !v)}
               className="flex w-full items-center justify-between"
             >
               <div className="flex items-center gap-2.5">
-                <div className={`flex size-8 items-center justify-center rounded-lg transition-colors ${isRecurring ? "bg-violet-500 text-white" : "bg-white border border-slate-200 text-slate-400"}`}>
+                <div className={`flex size-8 items-center justify-center rounded-lg transition-colors ${isRecurring ? "bg-violet-500 text-white" : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-400"}`}>
                   <RefreshCw size={14} strokeWidth={2.5} />
                 </div>
                 <div className="text-left">
-                  <p className="text-[13px] font-bold text-slate-700">Recurring Transaction</p>
+                  <p className="text-[13px] font-bold text-slate-700 dark:text-slate-200">Recurring Transaction</p>
                   <p className="text-[11px] text-slate-400">Auto-creates on a schedule</p>
                 </div>
               </div>
               {/* Toggle pill */}
-              <div className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${isRecurring ? "bg-violet-500" : "bg-slate-200"}`}>
+              <div className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${isRecurring ? "bg-violet-500" : "bg-slate-200 dark:bg-slate-700"}`}>
                 <span className={`pointer-events-none inline-block size-5 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out ${isRecurring ? "translate-x-5" : "translate-x-0"}`} />
               </div>
             </button>
@@ -301,7 +301,7 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
                   className="overflow-hidden"
                 >
                   <Select value={frequency} onValueChange={(v) => setFrequency(v as RecurringFrequency)}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white dark:bg-slate-900">
                       <SelectValue placeholder="Frequency" />
                     </SelectTrigger>
                     <SelectContent>
@@ -321,14 +321,14 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
         </form>
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-100 p-6 bg-slate-50/50 rounded-b-[20px]">
+      <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 p-6 bg-slate-50/50 dark:bg-slate-900/80 rounded-b-[20px]">
         {isEdit ? (
           <Button
             variant="ghost"
             size="icon"
             onClick={() => transaction?._id && onDelete(transaction._id)}
             disabled={isLoading}
-            className="size-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600"
+            className="size-10 rounded-xl bg-red-50 dark:bg-red-950/60 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/80 hover:text-red-600 dark:hover:text-red-300"
           >
             <Trash2 size={16} strokeWidth={2.5} />
           </Button>

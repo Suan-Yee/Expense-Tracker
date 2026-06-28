@@ -71,7 +71,7 @@ export default function TransactionsTable({
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.15, delay: i * 0.015 }}
-              className={`border-b border-slate-100/80 transition-colors group ${i % 2 === 1 ? "bg-slate-50/60" : "bg-transparent"} hover:bg-slate-100/80`}
+              className={`border-b border-slate-100/80 group bg-transparent"`}
             >
               <td className="py-3.5 px-3 sm:px-4 text-slate-500 whitespace-nowrap">
                 <div className="flex items-center gap-2">
