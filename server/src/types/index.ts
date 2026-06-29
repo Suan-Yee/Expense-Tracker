@@ -134,3 +134,30 @@ export interface BudgetWithProgress extends Budget {
     remaining: number;
     percentage: number;
 }
+
+export interface IGoal extends Document {
+    userId: mongoose.Types.ObjectId;
+    title: string;
+    targetAmount: number;
+    currentAmount: number;
+    deadline?: Date;
+    category: string;
+    color: string;
+    notes?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface Goal {
+    _id: string;
+    userId: string;
+    title: string;
+    targetAmount: number;
+    currentAmount: number;
+    deadline?: Date;
+    category: string;
+    color: string;
+    notes?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}

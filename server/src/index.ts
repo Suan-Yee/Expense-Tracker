@@ -4,6 +4,7 @@ import authRoutes from "./routes/authRoutes"
 import profileRoutes from "./routes/profileRoutes"
 import analyticsRoutes from "./routes/analyticsRoutes"
 import budgetRoutes from "./routes/budgetRoutes"
+import goalRoutes from "./routes/goalRoutes"
 import { errorHandler } from "./middlewares/errorHandler"
 import dotenv from "dotenv"
 import cors from "cors"
@@ -34,6 +35,7 @@ app.use("/api/auth", authRoutes)
 app.use("/api/profile", profileRoutes)
 app.use("/api/analytics", analyticsRoutes)
 app.use("/api/budgets", budgetRoutes)
+app.use("/api/goals", goalRoutes)
 
 app.use((req, res) => {
     res.status(404).json({

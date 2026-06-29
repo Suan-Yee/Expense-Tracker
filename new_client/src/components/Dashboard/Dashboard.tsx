@@ -15,51 +15,7 @@ import { useExpenseStore } from "../../store/expenseStore";
 import { useBudgetStore } from "../../store/budgetStore";
 import { CATEGORY_COLORS, CATEGORY_HEX_COLORS } from "../../constants/categories";
 import PeriodFilterBar from "../Common/PeriodFilterBar";
-
-interface StatCardProps {
-    label: string;
-    value: string | number;
-    icon: React.ElementType;
-    iconBg: string;
-    iconColor: string;
-    badge?: { value: number; isPositiveGood?: boolean };
-    loading: boolean;
-}
-
-function StatCard({ label, value, icon: Icon, iconBg, iconColor, badge, loading }: StatCardProps) {
-    const badgeUp = badge && badge.value > 0;
-    const badgeColor = badge
-        ? badge.isPositiveGood === false
-            ? badgeUp ? "bg-red-50 text-red-600 dark:bg-red-950/80 dark:text-red-300 dark:border dark:border-red-800/50" : "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border dark:border-emerald-800/50"
-            : badgeUp ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border dark:border-emerald-800/50" : "bg-red-50 text-red-600 dark:bg-red-950/80 dark:text-red-300 dark:border dark:border-red-800/50"
-        : "";
-
-    return (
-        <Card className="p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between">
-                <div className={`rounded-2xl ${iconBg} p-3.5`}>
-                    <Icon size={20} className={iconColor} strokeWidth={2.5} />
-                </div>
-                {badge && (
-                    <div className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${badgeColor}`}>
-                        {badgeUp ? <ArrowUpRight size={14} strokeWidth={3} /> : <ArrowDownRight size={14} strokeWidth={3} />}
-                        {Math.abs(badge.value)}%
-                    </div>
-                )}
-            </div>
-            <div className="mt-5">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</p>
-                {loading ? (
-                    <div className="mt-2 h-8 w-32 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
-                ) : (
-                    <h3 className="mt-1 text-xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-                        {typeof value === "number" ? formatCurrency(value) : value}
-                    </h3>
-                )}
-            </div>
-        </Card>
-    );
-}
+import KPICard from "../Common/KPICard";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -151,10 +107,25 @@ export default function Dashboard() {
 
             {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard label="Total Income"      value={stats?.totalIncome ?? 0}       icon={Landmark}     iconBg="bg-slate-100 dark:bg-slate-800"  iconColor="text-slate-700 dark:text-slate-200"   loading={isLoading} />
-                <StatCard label="Total Expenses"    value={stats?.totalExpenses ?? 0}     icon={ShoppingCart} iconBg="bg-rose-50 dark:bg-rose-950/60"    iconColor="text-rose-600 dark:text-rose-400"    badge={{ value: monthlyChange, isPositiveGood: false }} loading={isLoading} />
-                <StatCard label="Budget Remaining"  value={totalBudgetLimit > 0 ? Math.max(0, totalBudgetLimit - totalBudgetSpent) : stats?.currentMonthTotal ?? 0} icon={PiggyBank} iconBg="bg-emerald-50 dark:bg-emerald-950/60" iconColor="text-emerald-600 dark:text-emerald-400" loading={isLoading} />
-                <StatCard label="Recurring Bills"   value={`${recurringExpenses.length} active (${formatCurrency(recurringTotal)})`} icon={RefreshCw} iconBg="bg-violet-50 dark:bg-violet-950/60" iconColor="text-violet-600 dark:text-violet-400" loading={isLoading} />
+                <KPICard label="Total Income" value={stats?.totalIncome ?? 0} icon={Landmark} theme="emerald" delay={0} loading={isLoading} />
+                <KPICard
+                    label="Total Expenses"
+                    value={stats?.totalExpenses ?? 0}
+                    icon={ShoppingCart}
+                    theme="rose"
+                    delay={0.05}
+                    loading={isLoading}
+                    badge={
+                        monthlyChange !== 0 ? (
+                            <div className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${monthlyChange > 0 ? "bg-red-50 text-red-600 dark:bg-red-950/80 dark:text-red-300 dark:border dark:border-red-800/50" : "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border dark:border-emerald-800/50"}`}>
+                                {monthlyChange > 0 ? <ArrowUpRight size={14} strokeWidth={3} /> : <ArrowDownRight size={14} strokeWidth={3} />}
+                                {Math.abs(monthlyChange)}%
+                            </div>
+                        ) : undefined
+                    }
+                />
+                <KPICard label="Budget Remaining" value={totalBudgetLimit > 0 ? Math.max(0, totalBudgetLimit - totalBudgetSpent) : stats?.currentMonthTotal ?? 0} icon={PiggyBank} theme="blue" delay={0.1} loading={isLoading} />
+                <KPICard label="Recurring Bills" value={`${recurringExpenses.length} active (${formatCurrency(recurringTotal)})`} icon={RefreshCw} theme="violet" delay={0.15} loading={isLoading} />
             </div>
 
             {/* Operational Content Grid */}
