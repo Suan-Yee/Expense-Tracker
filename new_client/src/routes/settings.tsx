@@ -1,5 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import SettingsPage from '../pages/SettingsPage'
+import { useAuthStore } from '../store/authStore'
 
 export const Route = createFileRoute('/settings')({
-  component: () => <div className="p-8"><h1>Settings</h1></div>,
+  beforeLoad: () => {
+    if (!useAuthStore.getState().isAuthenticated) throw redirect({ to: '/login' })
+  },
+  component: SettingsPage,
+  context: () => ({ title: 'Settings - Expense Tracker' }),
 })

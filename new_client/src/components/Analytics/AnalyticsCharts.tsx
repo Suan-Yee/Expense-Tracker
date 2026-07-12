@@ -9,23 +9,35 @@ import { CATEGORY_HEX_COLORS } from "../../constants/categories";
 import { useThemeStore } from "../../store/themeStore";
 import type { CategoryTotal, SpendingTrend } from "../../types/analytics.types";
 
-// Custom Tooltip for Recharts
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipEntry {
+    name?: string;
+    value?: number;
+    color?: string;
+    payload?: { fill?: string };
+}
+
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: TooltipEntry[];
+    label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
         return (
             <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-3.5 shadow-xl backdrop-blur-md">
                 {label && <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">{label}</p>}
                 <div className="space-y-1.5">
-                    {payload.map((item: any, idx: number) => (
+                    {payload.map((item, idx) => (
                         <div key={idx} className="flex items-center justify-between gap-6 text-sm">
                             <div className="flex items-center gap-2">
-                                <span className="size-2.5 rounded-full" style={{ backgroundColor: item.color || item.payload.fill }} />
+                                <span className="size-2.5 rounded-full" style={{ backgroundColor: item.color || item.payload?.fill || "#64748b" }} />
                                 <span className="font-semibold text-slate-700 dark:text-slate-300 capitalize">
                                     {item.name}:
                                 </span>
                             </div>
                             <span className="font-bold text-slate-900 dark:text-white">
-                                {formatCurrency(item.value)}
+                                {formatCurrency(Number(item.value ?? 0))}
                             </span>
                         </div>
                     ))}

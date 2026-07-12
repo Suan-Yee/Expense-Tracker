@@ -1,6 +1,7 @@
 import { X, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "../../store/authStore";
+import { useModalAccessibility } from "../../hooks/useModalAccessibility";
 
 interface PasswordModalProps {
   onClose: () => void;
@@ -13,6 +14,7 @@ export default function PasswordModal({ onClose, inputClasses }: PasswordModalPr
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [localError, setLocalError] = useState("");
+  const modalRef = useModalAccessibility<HTMLDivElement>(true, onClose);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -44,9 +46,9 @@ export default function PasswordModal({ onClose, inputClasses }: PasswordModalPr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md overflow-hidden rounded-[20px] bg-white/90 p-8 shadow-2xl backdrop-blur-xl border border-white/50 animate-in zoom-in-95 duration-200">
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="password-modal-title" className="relative w-full max-w-md overflow-hidden rounded-[20px] bg-white/90 p-8 shadow-2xl backdrop-blur-xl border border-white/50 animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-slate-800">Change Password</h3>
+          <h3 id="password-modal-title" className="text-xl font-bold text-slate-800">Change Password</h3>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 hover:rotate-90 transition-all duration-300"

@@ -9,6 +9,7 @@ interface ThemeStore {
 }
 
 const THEME_KEY = "EXPENSE_THEME";
+let transitionCleanupTimer: number | undefined;
 
 function getInitialTheme(): ThemeMode {
   if (typeof window === "undefined") return "light";
@@ -22,18 +23,40 @@ function applyTheme(theme: ThemeMode) {
   localStorage.setItem(THEME_KEY, theme);
 }
 
+function transitionToTheme(theme: ThemeMode) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (reduceMotion) {
+    applyTheme(theme);
+    return;
+  }
+
+  root.classList.add("theme-transition");
+  if (transitionCleanupTimer !== undefined) window.clearTimeout(transitionCleanupTimer);
+  window.requestAnimationFrame(() => {
+    applyTheme(theme);
+    transitionCleanupTimer = window.setTimeout(() => {
+      root.classList.remove("theme-transition");
+      transitionCleanupTimer = undefined;
+    }, 360);
+  });
+}
+
 const initialTheme = getInitialTheme();
 applyTheme(initialTheme);
 
 export const useThemeStore = create<ThemeStore>((set, get) => ({
   theme: initialTheme,
   setTheme: (theme) => {
-    applyTheme(theme);
+    if (theme === get().theme) return;
+    transitionToTheme(theme);
     set({ theme });
   },
   toggleTheme: () => {
     const nextTheme = get().theme === "dark" ? "light" : "dark";
-    applyTheme(nextTheme);
+    transitionToTheme(nextTheme);
     set({ theme: nextTheme });
   },
 }));

@@ -14,11 +14,15 @@ function RootLayout() {
     const {matches} = useRouterState()
     const activeMatch = matches[matches.length - 1]
     const { title = "ExpenseTracker" } = activeMatch.context as { title: string }
-    const { isAuthenticated } = useAuthStore();
+    const { isAuthenticated, user, getProfile } = useAuthStore();
 
     useEffect(() => {
         document.title = title;
     }, [title]);
+
+    useEffect(() => {
+        if (isAuthenticated && !user) void getProfile();
+    }, [getProfile, isAuthenticated, user]);
 
     return (
         <div className="flex min-h-screen">

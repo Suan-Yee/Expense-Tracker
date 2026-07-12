@@ -19,15 +19,15 @@ import KPICard from "../Common/KPICard";
 
 export default function Dashboard() {
     const navigate = useNavigate();
-    const { dashboardStats, dashFilters: filters, isLoading: analyticsLoading, error, fetchDashboard } = useAnalyticsStore();
+    const { dashboardStats, isLoading: analyticsLoading, error, fetchDashboard } = useAnalyticsStore();
     const { expenses, isLoading: expensesLoading, getAllExpenses } = useExpenseStore();
     const { budgets, isLoading: budgetsLoading, fetchBudgets } = useBudgetStore();
 
     useEffect(() => {
-        fetchDashboard(filters);
-        getAllExpenses();
-        fetchBudgets();
-    }, []);
+        void fetchDashboard();
+        void getAllExpenses();
+        void fetchBudgets();
+    }, [fetchBudgets, fetchDashboard, getAllExpenses]);
 
 
     const stats = dashboardStats;

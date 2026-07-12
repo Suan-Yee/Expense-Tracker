@@ -1,5 +1,5 @@
 import { X, Trash2, Loader2, ArrowUpCircle, ArrowDownCircle, PiggyBank, RefreshCw, Tag, X as XSmall } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import type { KeyboardEvent } from "react"
 import { format } from "date-fns"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
@@ -10,7 +10,7 @@ import CustomDatePicker from "./CustomDatePicker"
 import { useExpenseStore } from "../../store/expenseStore"
 import { EXPENSE_CATEGORIES } from "../../constants/categories"
 import { type ExpenseFormData } from "../../types/expense.types"
-import { TransactionType, RecurringFrequency } from "../../types"
+import { TransactionType, RecurringFrequency, type Expense } from "../../types"
 import { formatCurrency } from "../../utils/formatUtils"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -22,48 +22,28 @@ const FREQUENCY_OPTIONS = [
 ]
 
 interface TransactionPanelProps {
-  transaction: any | null;
+  transaction: Expense | null;
   onClose: () => void;
   onDelete: (id: string) => void;
 }
 
 export default function TransactionPanel({ transaction, onClose, onDelete }: TransactionPanelProps) {
-  const [description, setDescription] = useState("")
-  const [amount, setAmount] = useState("")
-  const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE)
-  const [category, setCategory] = useState("food")
-  const [date, setDate] = useState("")
-  const [tags, setTags] = useState<string[]>([])
+  const initialDate = transaction?.date
+    ? (typeof transaction.date === "string" ? transaction.date.split("T")[0] : transaction.date.toISOString().split("T")[0])
+    : new Date().toISOString().split("T")[0]
+  const [description, setDescription] = useState(transaction?.description ?? "")
+  const [amount, setAmount] = useState(transaction ? Math.abs(transaction.amount).toString() : "")
+  const [type, setType] = useState<TransactionType>(transaction?.type ?? TransactionType.EXPENSE)
+  const [category, setCategory] = useState(transaction?.category ?? "food")
+  const [date, setDate] = useState(initialDate)
+  const [tags, setTags] = useState<string[]>(transaction?.tags ?? [])
   const [tagInput, setTagInput] = useState("")
-  const [isRecurring, setIsRecurring] = useState(false)
-  const [frequency, setFrequency] = useState<RecurringFrequency>(RecurringFrequency.MONTHLY)
+  const [isRecurring, setIsRecurring] = useState(transaction?.isRecurring ?? false)
+  const [frequency, setFrequency] = useState<RecurringFrequency>(transaction?.frequency ?? RecurringFrequency.MONTHLY)
   const [localError, setLocalError] = useState("")
 
-  useEffect(() => {
-    if (transaction) {
-      setDescription(transaction.description)
-      setAmount(Math.abs(transaction.amount).toString())
-      setType(transaction.type || (transaction.amount >= 0 ? TransactionType.INCOME : TransactionType.EXPENSE))
-      setCategory(transaction.category)
-      const rawDate = transaction.date
-      setDate(typeof rawDate === "string" ? rawDate.split("T")[0] : new Date(rawDate).toISOString().split("T")[0])
-      setTags(Array.isArray(transaction.tags) ? transaction.tags : [])
-      setIsRecurring(!!transaction.isRecurring)
-      setFrequency(transaction.frequency || RecurringFrequency.MONTHLY)
-    } else {
-      setDescription("")
-      setAmount("")
-      setType(TransactionType.EXPENSE)
-      setCategory("food")
-      setDate(new Date().toISOString().split("T")[0])
-      setTags([])
-      setTagInput("")
-      setIsRecurring(false)
-      setFrequency(RecurringFrequency.MONTHLY)
-    }
-  }, [transaction])
-
   const isEdit = !!transaction
+  const isIncome = type === TransactionType.INCOME
   const { createExpense, updateExpense, isLoading, error } = useExpenseStore()
 
   // Tag input handlers
@@ -119,10 +99,10 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
   )
 
   return (
-    <div className="flex h-full w-full flex-col rounded-[20px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white dark:border-slate-800">
+    <div className="flex h-full w-full flex-col border-l border-white/70 bg-white/92 shadow-2xl shadow-slate-950/15 backdrop-blur-2xl dark:border-slate-800 dark:bg-slate-900/92">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
-        <h2 className="text-lg font-bold text-slate-800 dark:text-white">
+        <h2 id="transaction-panel-title" className="text-lg font-bold text-slate-800 dark:text-white">
           {isEdit ? "Transaction Details" : "New Transaction"}
         </h2>
         <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
@@ -135,8 +115,8 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
         {isEdit && (
           <div className="flex flex-col items-center mb-8">
             <h3 className="text-lg font-bold text-slate-800 dark:text-white">{description || "No Description"}</h3>
-            <p className={`text-2xl font-black tracking-tight ${parseFloat(amount) >= 0 ? "text-emerald-500 dark:text-emerald-400" : "text-slate-800 dark:text-white"}`}>
-              {parseFloat(amount) >= 0 ? "+" : ""}{formatCurrency(parseFloat(amount) || 0)}
+            <p className={`text-2xl font-black tracking-tight ${isIncome ? "text-emerald-500 dark:text-emerald-400" : "text-slate-800 dark:text-white"}`}>
+              {isIncome ? "+" : "−"}{formatCurrency(parseFloat(amount) || 0)}
             </p>
             <p className="text-xs font-semibold text-slate-400 mt-1">
               {date ? format(date.length === 10 ? new Date(date + "T00:00:00") : new Date(date), "MMM dd, yyyy") : "No Date"}

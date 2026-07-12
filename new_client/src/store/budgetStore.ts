@@ -17,6 +17,7 @@ interface BudgetStore extends BudgetState {
 }
 
 const now = new Date();
+let budgetRequestSequence = 0;
 
 export const useBudgetStore = create<BudgetStore>((set, get) => ({
     budgets: [],
@@ -29,15 +30,18 @@ export const useBudgetStore = create<BudgetStore>((set, get) => ({
 
     fetchBudgets: async () => {
         const { filters } = get();
+        const requestSequence = ++budgetRequestSequence;
         set({ isLoading: true, error: null });
         try {
             const response = await getBudgetsService(filters.month, filters.year);
+            if (requestSequence !== budgetRequestSequence) return;
             if (response.success && response.data) {
                 set({ budgets: response.data, isLoading: false });
             } else {
                 set({ isLoading: false });
             }
         } catch (error) {
+            if (requestSequence !== budgetRequestSequence) return;
             const err = error as AxiosError<{ errorMessage?: string }>;
             set({
                 error: err.response?.data?.errorMessage ?? "Failed to fetch budgets",

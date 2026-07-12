@@ -14,6 +14,8 @@ interface ExpenseStore extends ExpenseState {
     setItemsPerPage: (limit: number) => void;
 }
 
+let expenseRequestSequence = 0;
+
 export const useExpenseStore = create<ExpenseStore>((set, get) => ({
     expenses: [],
     isLoading: false,
@@ -33,11 +35,7 @@ export const useExpenseStore = create<ExpenseStore>((set, get) => ({
             const response = await createExpenseService(data);
             const newExpense = response.data;
             if (newExpense) {
-                set((state) => ({
-                    expenses: [...state.expenses, newExpense],
-                    isLoading: false,
-                    error: null,
-                }));
+                await get().getAllExpenses();
             } else {
                 set({ isLoading: false });
             }
@@ -52,11 +50,13 @@ export const useExpenseStore = create<ExpenseStore>((set, get) => ({
 
     getAllExpenses: async () => {
         const { filters } = get();
+        const requestSequence = ++expenseRequestSequence;
         set({ isLoading: true, error: null });
         // Silently generate any due recurring entries first
-        try { await generateRecurringService(); } catch (_) { /* ignore */ }
+        try { await generateRecurringService(); } catch { /* ignore */ }
         try {
             const response = await getAllExpensesService(filters);
+            if (requestSequence !== expenseRequestSequence) return;
             if (response.success && response.data) {
                 set({
                     expenses: response.data,
@@ -67,6 +67,7 @@ export const useExpenseStore = create<ExpenseStore>((set, get) => ({
                 set({ isLoading: false });
             }
         } catch (error) {
+            if (requestSequence !== expenseRequestSequence) return;
             const err = error as AxiosError<{ error: string }>;
             set({
                 error: err.response?.data?.error ?? "Failed to fetch expenses",
@@ -76,7 +77,7 @@ export const useExpenseStore = create<ExpenseStore>((set, get) => ({
     },
 
     generateRecurring: async () => {
-        try { await generateRecurringService(); } catch (_) { /* silent */ }
+        try { await generateRecurringService(); } catch { /* silent */ }
     },
 
     setFilters: (newFilters) => {

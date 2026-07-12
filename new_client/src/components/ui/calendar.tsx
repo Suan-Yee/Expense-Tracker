@@ -15,7 +15,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         month: "space-y-4",
         month_caption: "flex justify-center pt-1 relative items-center mb-2",
         caption_label: "text-[14px] font-bold text-slate-800",
-        nav: "space-x-1 flex items-center absolute inset-x-0 top-0 justify-between px-1",
+        nav: "space-x-1 flex items-center absolute inset-x-0 top-1 justify-between px-1",
         button_previous: "flex size-7 items-center justify-center rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors",
         button_next: "flex size-7 items-center justify-center rounded-lg bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors",
         month_grid: "w-full border-collapse",

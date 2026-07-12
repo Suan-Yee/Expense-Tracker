@@ -8,16 +8,12 @@ import TransactionPanel from "../components/Expenses/TransactionPanel";
 import ExportModal from "../components/Expenses/ExportModal";
 import { useExpenseStore } from "../store/expenseStore";
 import ActionConfirmModal from "../components/Common/ActionConfirmModal";
-
-// Mock Data (Keeping as fallback or for design reference)
-export const MOCK_TRANSACTIONS = [
-  { id: "1", amount: -15.0, category: "food", description: "Figma", date: "2023-10-24", insertDate: "2023-10-24T10:23:00Z", status: "Cleared" },
-  { id: "2", amount: -18.5, category: "food", description: "Sweetgreen", date: "2023-10-22", insertDate: "2023-10-22T14:10:00Z", status: "Cleared" },
-];
+import type { Expense } from "../types";
+import { useModalAccessibility } from "../hooks/useModalAccessibility";
 
 export default function ExpensesPage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [editingTransaction, setEditingTransaction] = useState<Expense | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
 
@@ -48,7 +44,7 @@ export default function ExpensesPage() {
     setIsPanelOpen(true);
   };
 
-  const openEditPanel = (tr: any) => {
+  const openEditPanel = (tr: Expense) => {
     setEditingTransaction(tr);
     setIsPanelOpen(true);
   };
@@ -57,6 +53,7 @@ export default function ExpensesPage() {
     setIsPanelOpen(false);
     setTimeout(() => setEditingTransaction(null), 300); // Clear after animation
   };
+  const panelRef = useModalAccessibility<HTMLDivElement>(isPanelOpen, closePanel);
 
   const confirmDelete = async () => {
     if (transactionToDelete) {
@@ -69,9 +66,9 @@ export default function ExpensesPage() {
   };
 
   return (
-    <div className="relative isolate flex min-h-[100svh] w-full flex-col overflow-hidden px-4 py-6 sm:px-8 lg:h-[100svh] lg:px-10 lg:py-8">
+    <div className="relative isolate flex h-[calc(100svh-5rem)] min-h-0 w-full flex-col overflow-hidden px-4 py-6 sm:px-8 lg:h-[100svh] lg:px-10 lg:py-8">
       {/* Header section */}
-      <div className="z-10 mb-6 flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:mb-8">
+      <div className="z-10 mb-6 flex w-full shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:mb-8">
         <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
           Expenses
         </h1>
@@ -94,18 +91,14 @@ export default function ExpensesPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="z-10 flex w-full flex-1 flex-col gap-6 overflow-hidden lg:min-h-0 lg:flex-row">
+      <div className="z-10 flex min-h-0 w-full flex-1 flex-col gap-6 overflow-hidden">
         
         {/* Left Side: Table & Filters */}
-        <motion.div 
-            layout 
-            className="flex flex-col flex-1 min-w-0"
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-        >
-          <div className="flex h-full flex-col overflow-hidden rounded-lg border border-white/60 bg-white/78 p-4 shadow-sm shadow-slate-200/50 backdrop-blur-xl sm:p-6 dark:border-slate-800 dark:bg-slate-900/78 dark:shadow-slate-950/40">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-white/60 bg-white/78 p-4 shadow-sm shadow-slate-200/50 backdrop-blur-xl sm:p-6 dark:border-slate-800 dark:bg-slate-900/78 dark:shadow-slate-950/40">
             <FiltersBar />
             
-            <div className="flex-1 mt-4 overflow-auto min-h-0 relative scroll-smooth [scrollbar-gutter:stable]">
+            <div className="relative mt-4 min-h-0 min-w-0 flex-1 overflow-auto scroll-smooth [scrollbar-gutter:stable]">
                 {isLoading && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/40 backdrop-blur-[1px]">
                      <div className="size-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
@@ -113,7 +106,6 @@ export default function ExpensesPage() {
                 )}
                 <TransactionsTable 
                 transactions={paginatedExpenses} 
-                isPanelOpen={isPanelOpen} 
                 onEdit={openEditPanel} 
                 onDelete={(id) => setTransactionToDelete(id)}
                 sortConfig={sortConfig}
@@ -127,34 +119,47 @@ export default function ExpensesPage() {
                 )}
             </div>
             
-            <div className="mt-4 pt-4 border-t border-slate-100">
+            <div className="mt-4 shrink-0 border-t border-slate-100 pt-4 dark:border-slate-800">
                <Pagination />
             </div>
           </div>
-        </motion.div>
-
-        {/* Right Side: Add/Edit Panel */}
-        <AnimatePresence>
-          {isPanelOpen && (
-            <motion.div
-              initial={{ opacity: 0, width: 0, x: 20 }}
-              animate={{ opacity: 1, width: "auto", x: 0 }}
-              exit={{ opacity: 0, width: 0, x: 20 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="relative shrink-0 overflow-hidden"
-            >
-              <div className="w-[310px] sm:w-[340px] xl:w-[380px] h-full">
-                 <TransactionPanel 
-                   transaction={editingTransaction} 
-                   onClose={closePanel} 
-                   onDelete={(id) => setTransactionToDelete(id)}
-                 />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+        </div>
       </div>
+
+      {/* Fixed Add/Edit drawer — keeps the transaction table at full width */}
+      <AnimatePresence>
+        {isPanelOpen && (
+          <>
+            <motion.button
+              type="button"
+              aria-label="Close transaction panel"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closePanel}
+              className="fixed inset-0 z-40 cursor-default bg-slate-950/25 backdrop-blur-[3px]"
+            />
+            <motion.div
+              ref={panelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="transaction-panel-title"
+              initial={{ opacity: 0, x: 48 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 48 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+              className="fixed inset-y-0 right-0 z-50 w-full max-w-[420px]"
+            >
+              <TransactionPanel
+                key={editingTransaction?._id ?? "new-transaction"}
+                transaction={editingTransaction}
+                onClose={closePanel}
+                onDelete={(id) => setTransactionToDelete(id)}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <ActionConfirmModal
         isOpen={!!transactionToDelete}

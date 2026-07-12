@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/authStore";
 
 export default function ProfilePage() {
 
-    let { getProfile, isLoading, error, user } = useAuthStore();
+    const { getProfile, isLoading, error, user } = useAuthStore();
     useEffect(() => {
         getProfile();
     }, [getProfile]);

@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, DollarSign, Tag, Calendar } from "lucide-react";
 import { useBudgetStore } from "../../store/budgetStore";
 import type { Budget } from "../../types/budget.types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useModalAccessibility } from "../../hooks/useModalAccessibility";
 
 const CATEGORIES = [
     "food", "transport", "utilities", "entertainment",
@@ -41,27 +42,12 @@ interface BudgetFormProps {
 export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMonth, defaultYear }: BudgetFormProps) {
     const { createBudget, updateBudget, isLoading, error } = useBudgetStore();
 
-    const [category, setCategory] = useState("food");
-    const [limit, setLimit] = useState("");
-    const [month, setMonth] = useState(defaultMonth);
-    const [year, setYear] = useState(defaultYear);
+    const [category, setCategory] = useState(editingBudget?.category ?? "food");
+    const [limit, setLimit] = useState(editingBudget?.limit.toString() ?? "");
+    const [month, setMonth] = useState(editingBudget?.month ?? defaultMonth);
+    const [year, setYear] = useState(editingBudget?.year ?? defaultYear);
     const [fieldError, setFieldError] = useState<string | null>(null);
-
-    // Pre-fill when editing
-    useEffect(() => {
-        if (editingBudget) {
-            setCategory(editingBudget.category);
-            setLimit(editingBudget.limit.toString());
-            setMonth(editingBudget.month);
-            setYear(editingBudget.year);
-        } else {
-            setCategory("food");
-            setLimit("");
-            setMonth(defaultMonth);
-            setYear(defaultYear);
-        }
-        setFieldError(null);
-    }, [editingBudget, isOpen, defaultMonth, defaultYear]);
+    const panelRef = useModalAccessibility<HTMLDivElement>(isOpen, onClose);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -89,6 +75,10 @@ export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMont
                 <>
                     {/* Backdrop */}
                     <motion.div
+                        ref={panelRef}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="budget-form-title"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -107,7 +97,7 @@ export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMont
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 pt-7 pb-5 border-b border-slate-100/80">
                             <div>
-                                <h2 className="text-[17px] font-extrabold text-slate-800">
+                                <h2 id="budget-form-title" className="text-[17px] font-extrabold text-slate-800">
                                     {editingBudget ? "Edit Budget" : "New Budget"}
                                 </h2>
                                 <p className="text-[12px] text-slate-400 font-medium mt-0.5">

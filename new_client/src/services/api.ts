@@ -29,7 +29,7 @@ api.interceptors.response.use(
     },
 
     (error) => {
-        if(error.response.status === 401) {
+        if (error.response?.status === 401) {
             localStorage.removeItem(TOKEN_KEY)
 
             if (!window.location.pathname.includes("/login") && !window.location.pathname.includes("/signup")) {

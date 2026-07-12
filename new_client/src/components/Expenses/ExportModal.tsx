@@ -5,6 +5,7 @@ import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import type { Expense } from "../../types"
 import { formatCurrency } from "../../utils/formatUtils"
+import { useModalAccessibility } from "../../hooks/useModalAccessibility"
 
 interface ExportModalProps {
   isOpen: boolean
@@ -122,6 +123,7 @@ function exportPDF(expenses: Expense[]) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ExportModal({ isOpen, onClose, expenses }: ExportModalProps) {
+  const modalRef = useModalAccessibility<HTMLDivElement>(isOpen, onClose)
   const [selected, setSelected] = useState<ExportFormat>("pdf")
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -149,6 +151,10 @@ export default function ExportModal({ isOpen, onClose, expenses }: ExportModalPr
         <>
           {/* Backdrop */}
           <motion.div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="export-modal-title"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -171,7 +177,7 @@ export default function ExportModal({ isOpen, onClose, expenses }: ExportModalPr
               {/* Header */}
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-[17px] font-extrabold text-slate-800">Export Transactions</h2>
+                  <h2 id="export-modal-title" className="text-[17px] font-extrabold text-slate-800">Export Transactions</h2>
                   <p className="text-[12px] text-slate-400 font-medium mt-0.5">
                     {expenses.length} transaction{expenses.length !== 1 ? "s" : ""} · filtered view
                   </p>

@@ -105,7 +105,7 @@ export default function BudgetsPage() {
                 </div>
             )}
 
-            {/* Cards grid */}
+            {/* Category control table */}
             <div className="z-10 flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]">
                 {isLoading ? (
                     <div className="flex h-48 items-center justify-center">
@@ -137,7 +137,10 @@ export default function BudgetsPage() {
                     </motion.div>
                 ) : (
                     <AnimatePresence mode="popLayout">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-6">
+                        <div className="mb-6 overflow-hidden rounded-2xl border border-white/70 bg-white/75 shadow-sm backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/65">
+                            <div className="hidden grid-cols-[minmax(145px,1fr)_minmax(220px,2fr)_125px_88px] border-b border-slate-100 px-5 py-3 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400 sm:grid dark:border-slate-700/60">
+                                <span>Category</span><span>Usage</span><span className="text-right">Status</span><span />
+                            </div>
                             {budgets.map((budget, i) => (
                                 <BudgetCard
                                     key={budget._id}
@@ -154,6 +157,7 @@ export default function BudgetsPage() {
 
             {/* Add / Edit form panel */}
             <BudgetForm
+                key={`${editingBudget?._id ?? "new"}-${filters.month}-${filters.year}-${isFormOpen ? "open" : "closed"}`}
                 isOpen={isFormOpen}
                 onClose={closeForm}
                 editingBudget={editingBudget}

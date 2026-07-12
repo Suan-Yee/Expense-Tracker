@@ -14,7 +14,7 @@ const navLinks = [
     { name: "Goals",     path: "/goal",      icon: Target       },
     { name: "Analytics", path: "/analytics", icon: BarChart3    },
     { name: "Settings",  path: "/settings",  icon: Settings     },
-]
+] as const
 
 function getInitials(name?: string) {
     if (!name) return "JD"
@@ -49,7 +49,7 @@ export default function Navigation() {
                     {navLinks.map(({ name, path, icon: Icon }) => (
                         <Link
                             key={name}
-                            to={path as any}
+                            to={path}
                             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] transition-all"
                             activeProps={{ className: "bg-emerald-50 text-emerald-700 font-bold shadow-[inset_3px_0_0_0_#059669] dark:bg-emerald-500/12 dark:text-emerald-300" }}
                             inactiveProps={{ className: "font-semibold text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/8 dark:hover:text-slate-100" }}
@@ -113,7 +113,7 @@ export default function Navigation() {
             {navLinks.map(({ name, path, icon: Icon }) => (
                 <Link
                     key={name}
-                    to={path as any}
+                    to={path}
                     aria-label={name}
                     className="flex h-11 items-center justify-center rounded-lg text-slate-500 transition-colors"
                     activeProps={{ className: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300" }}

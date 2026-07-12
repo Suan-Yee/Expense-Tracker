@@ -1,63 +1,33 @@
-import { Wallet, Target, Trophy } from "lucide-react";
+import { PiggyBank, Target, Trophy } from "lucide-react";
 import type { Goal } from "../../types/goal.types";
 
-interface GoalSummaryProps {
-    goals: Goal[];
-}
+interface GoalSummaryProps { goals: Goal[] }
 
 export default function GoalSummary({ goals }: GoalSummaryProps) {
-    const totalTarget = goals.reduce((sum, g) => sum + g.targetAmount, 0);
-    const totalSaved = goals.reduce((sum, g) => sum + g.currentAmount, 0);
-    const completedCount = goals.filter((g) => g.currentAmount >= g.targetAmount).length;
-    const overallPercentage = totalTarget > 0 ? Math.min(Math.round((totalSaved / totalTarget) * 100), 100) : 0;
-
-    const stats = [
-        {
-            label: "Total Saved",
-            value: `$${totalSaved.toLocaleString()}`,
-            sub: `across ${goals.length} ${goals.length === 1 ? "active goal" : "active goals"}`,
-            icon: Wallet,
-            color: "text-emerald-600 dark:text-emerald-400",
-            bg: "bg-emerald-50 dark:bg-emerald-950/60",
-            ring: "ring-emerald-200 dark:ring-emerald-800/50",
-        },
-        {
-            label: "Target Amount",
-            value: `$${totalTarget.toLocaleString()}`,
-            sub: `${overallPercentage}% overall progress`,
-            icon: Target,
-            color: "text-blue-600 dark:text-blue-400",
-            bg: "bg-blue-50 dark:bg-blue-950/60",
-            ring: "ring-blue-200 dark:ring-blue-800/50",
-        },
-        {
-            label: "Milestones Reached",
-            value: completedCount.toString(),
-            sub: completedCount > 0 ? "Awesome achievement!" : "Keep pushing forward",
-            icon: Trophy,
-            color: completedCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-500 dark:text-slate-400",
-            bg: completedCount > 0 ? "bg-amber-50 dark:bg-amber-950/60" : "bg-slate-50 dark:bg-slate-800",
-            ring: completedCount > 0 ? "ring-amber-200 dark:ring-amber-800/50" : "ring-slate-200 dark:ring-slate-700",
-        },
-    ];
+    const target = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
+    const saved = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
+    const completed = goals.filter((goal) => goal.currentAmount >= goal.targetAmount).length;
+    const percentage = target ? Math.min(Math.round(saved / target * 100), 100) : 0;
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {stats.map(({ label, value, sub, icon: Icon, color, bg, ring }) => (
-                <div
-                    key={label}
-                    className="flex items-center gap-4 rounded-2xl bg-white/70 dark:bg-slate-800/70 border border-white/60 dark:border-slate-700/60 backdrop-blur-xl shadow-sm shadow-slate-200/50 dark:shadow-none px-5 py-4"
-                >
-                    <div className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${bg} ring-1 ${ring}`}>
-                        <Icon size={18} className={color} strokeWidth={2} />
+        <section className="rounded-2xl border border-white/80 bg-white/78 px-5 py-4 shadow-sm backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/72 sm:px-6">
+            <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr] lg:items-center">
+                <div>
+                    <div className="flex flex-wrap items-end justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                            <div className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"><PiggyBank size={19} /></div>
+                            <div><p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-emerald-600 dark:text-emerald-400">Total savings</p><p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">${saved.toLocaleString()} <span className="text-xs font-bold text-slate-400">of ${target.toLocaleString()}</span></p></div>
+                        </div>
+                        <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">{percentage}%</p>
                     </div>
-                    <div className="min-w-0">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-                        <p className={`text-[20px] font-extrabold leading-tight ${color}`}>{value}</p>
-                        <p className="text-[11px] text-slate-400 font-medium truncate">{sub}</p>
-                    </div>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${percentage}%` }} /></div>
                 </div>
-            ))}
-        </div>
+
+                <div className="grid grid-cols-2 gap-2.5 lg:border-l lg:border-slate-100 lg:pl-5 dark:lg:border-slate-700/70">
+                    <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/70 px-3 py-2.5 dark:border-transparent dark:bg-slate-800/70"><Target size={16} className="text-emerald-500" /><div><p className="text-lg font-black leading-none text-slate-800 dark:text-white">{goals.length}</p><p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-emerald-700/60 dark:text-slate-400">Goals</p></div></div>
+                    <div className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50/70 px-3 py-2.5 dark:border-transparent dark:bg-slate-800/70"><Trophy size={16} className="text-amber-500" /><div><p className="text-lg font-black leading-none text-slate-800 dark:text-white">{completed}</p><p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-amber-700/60 dark:text-slate-400">Completed</p></div></div>
+                </div>
+            </div>
+        </section>
     );
 }

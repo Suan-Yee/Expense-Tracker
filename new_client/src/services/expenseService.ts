@@ -1,4 +1,4 @@
-import type { ExpenseFormData } from "../types/expense.types";
+import type { ExpenseFilters, ExpenseFormData } from "../types/expense.types";
 import { type ApiResponse, type Expense } from "../types";
 import api from "./api";
 
@@ -7,7 +7,7 @@ export const createExpense = async (data: ExpenseFormData) => {
     return response.data;
 }
 
-export const getAllExpenses = async (params?: any) => {
+export const getAllExpenses = async (params?: ExpenseFilters) => {
     const response = await api.get<ApiResponse<Expense[]>>("/expenses", { params });
     return response.data;
 }
@@ -25,4 +25,4 @@ export const deleteExpense = async (id: string) => {
 export const generateRecurring = async () => {
     const response = await api.post<ApiResponse<{ generated: number }>>("/expenses/generate-recurring");
     return response.data;
-}
+}

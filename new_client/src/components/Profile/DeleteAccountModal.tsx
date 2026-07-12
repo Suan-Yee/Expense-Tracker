@@ -2,6 +2,7 @@ import { ShieldAlert, Loader, Check } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "@tanstack/react-router";
+import { useModalAccessibility } from "../../hooks/useModalAccessibility";
 
 interface DeleteAccountModalProps {
   onClose: () => void;
@@ -14,6 +15,7 @@ export default function DeleteAccountModal({ onClose, onConfirm }: DeleteAccount
   const [isDeleting, setIsDeleting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [localError, setLocalError] = useState("");
+  const modalRef = useModalAccessibility<HTMLDivElement>(true, onClose);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -39,12 +41,12 @@ export default function DeleteAccountModal({ onClose, onConfirm }: DeleteAccount
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-sm overflow-hidden rounded-[20px] bg-white p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="delete-account-title" className="relative w-full max-w-sm overflow-hidden rounded-[20px] bg-white p-8 shadow-2xl animate-in zoom-in-95 duration-200">
         <div className="flex flex-col items-center text-center">
           <div className="flex size-14 items-center justify-center rounded-full bg-red-100 text-red-500 mb-4 shadow-sm border border-red-200/50">
              {successMsg ? <Check size={28} className="text-emerald-500" strokeWidth={2.5}/> : <ShieldAlert size={28} strokeWidth={2.5} />}
           </div>
-          <h3 className="text-xl font-bold text-slate-900">{successMsg ? "Farewell" : "Delete Account?"}</h3>
+          <h3 id="delete-account-title" className="text-xl font-bold text-slate-900">{successMsg ? "Farewell" : "Delete Account?"}</h3>
           
           {localError && <p className="mt-2 text-sm text-red-500 font-medium">{localError}</p>}
           

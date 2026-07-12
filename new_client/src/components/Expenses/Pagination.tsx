@@ -11,12 +11,12 @@ export default function Pagination() {
   const endCount = Math.min(validPage * itemsPerPage, totalCount);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 text-[13px] text-slate-500 font-medium px-4">
-      <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-[13px] font-medium text-slate-500 sm:px-4">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
         <span>
           Showing <span className="font-bold text-slate-700">{startCount}</span> to <span className="font-bold text-slate-700">{endCount}</span> of <span className="font-bold text-slate-700">{totalCount}</span> transactions
         </span>
-        <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
+        <div className="flex items-center gap-1.5 sm:ml-2 sm:border-l sm:border-slate-200 sm:pl-3 dark:border-slate-700">
           <span className="text-xs">Rows per page:</span>
           <select
             value={itemsPerPage}

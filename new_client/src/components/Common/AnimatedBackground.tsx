@@ -74,6 +74,7 @@ export default function AnimatedBackground() {
   const dotsRef = useRef<Dot[]>([]);
   const viewportRef = useRef({ width: 0, height: 0 });
   const mouseRef = useRef({ x: 0, y: 0, isActive: false });
+  const darkThemeRef = useRef(document.documentElement.classList.contains("dark"));
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -181,8 +182,11 @@ export default function AnimatedBackground() {
     window.addEventListener("resize", resize);
 
     const themeObserver = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains("dark");
+      if (isDark === darkThemeRef.current) return;
+      darkThemeRef.current = isDark;
       const { width, height } = viewportRef.current;
-      dotsRef.current = createDots(width, height, document.documentElement.classList.contains("dark"));
+      dotsRef.current = createDots(width, height, isDark);
     });
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
@@ -205,7 +209,7 @@ export default function AnimatedBackground() {
     >
       <canvas
         ref={canvasRef}
-        className="pointer-events-none absolute inset-0 z-0 opacity-90 dark:mix-blend-screen dark:opacity-75"
+        className="pointer-events-none absolute inset-0 z-0 opacity-90 transition-opacity duration-500 dark:mix-blend-screen dark:opacity-75"
         aria-hidden="true"
       />
       <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-px bg-white/80 dark:bg-emerald-300/10" />

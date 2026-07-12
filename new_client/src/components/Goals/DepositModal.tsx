@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Minus, CheckCircle, AlertCircle, DollarSign, Wallet } from "lucide-react";
 import type { Goal } from "../../types/goal.types";
+import { useModalAccessibility } from "../../hooks/useModalAccessibility";
 
 interface DepositModalProps {
     isOpen: boolean;
@@ -16,6 +17,14 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
     const [recordInExpense, setRecordInExpense] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const handleClose = () => {
+        setAmount("");
+        setRecordInExpense(true);
+        setError(null);
+        onClose();
+    };
+    const modalRef = useModalAccessibility<HTMLDivElement>(isOpen, handleClose);
 
     if (!isOpen || !goal) return null;
 
@@ -37,7 +46,7 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
         setIsSubmitting(false);
         if (success) {
             setAmount("");
-            onClose();
+            handleClose();
         } else {
             setError("Something went wrong. Please try again.");
         }
@@ -48,10 +57,14 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 {/* Backdrop */}
                 <motion.div
+                    ref={modalRef}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="deposit-modal-title"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
                 />
 
@@ -69,7 +82,7 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
                                 {isDeposit ? <Plus size={20} strokeWidth={3} /> : <Minus size={20} strokeWidth={3} />}
                             </div>
                             <div>
-                                <h3 className="text-lg font-extrabold text-slate-800 dark:text-white">
+                                <h3 id="deposit-modal-title" className="text-lg font-extrabold text-slate-800 dark:text-white">
                                     {isDeposit ? "Deposit Funds" : "Withdraw Funds"}
                                 </h3>
                                 <p className="text-xs font-semibold text-slate-400 truncate max-w-[220px]">
@@ -78,7 +91,7 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
                             </div>
                         </div>
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 transition-colors"
                         >
                             <X size={18} />
@@ -148,7 +161,7 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
                         <div className="flex gap-3 pt-2">
                             <button
                                 type="button"
-                                onClick={onClose}
+                                onClick={handleClose}
                                 className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                             >
                                 Cancel

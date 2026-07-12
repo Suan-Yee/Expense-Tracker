@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Target, Tag, Calendar, Palette, FileText, CheckCircle, DollarSign } from "lucide-react";
 import type { Goal, GoalFormData, GoalUpdateData } from "../../types/goal.types";
 import CustomSelect from "../Expenses/CustomSelect";
 import CustomDatePicker from "../Expenses/CustomDatePicker";
+import { useModalAccessibility } from "../../hooks/useModalAccessibility";
 
 const CATEGORIES = [
     { label: "Travel",     value: "travel" },
@@ -35,38 +36,17 @@ interface GoalFormModalProps {
 export default function GoalFormModal({
     isOpen, onClose, editingGoal, onSubmitCreate, onSubmitUpdate
 }: GoalFormModalProps) {
-    const [title, setTitle] = useState("");
-    const [targetAmount, setTargetAmount] = useState("");
-    const [currentAmount, setCurrentAmount] = useState("");
-    const [deadline, setDeadline] = useState("");
-    const [category, setCategory] = useState("other");
-    const [color, setColor] = useState("emerald");
-    const [notes, setNotes] = useState("");
+    const [title, setTitle] = useState(editingGoal?.title ?? "");
+    const [targetAmount, setTargetAmount] = useState(editingGoal?.targetAmount.toString() ?? "");
+    const [currentAmount, setCurrentAmount] = useState(editingGoal?.currentAmount.toString() ?? "");
+    const [deadline, setDeadline] = useState(editingGoal?.deadline?.substring(0, 10) ?? "");
+    const [category, setCategory] = useState(editingGoal?.category || "other");
+    const [color, setColor] = useState(editingGoal?.color || "emerald");
+    const [notes, setNotes] = useState(editingGoal?.notes || "");
     const [recordInExpense, setRecordInExpense] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (editingGoal) {
-            setTitle(editingGoal.title);
-            setTargetAmount(editingGoal.targetAmount.toString());
-            setCurrentAmount(editingGoal.currentAmount.toString());
-            setDeadline(editingGoal.deadline ? editingGoal.deadline.substring(0, 10) : "");
-            setCategory(editingGoal.category || "other");
-            setColor(editingGoal.color || "emerald");
-            setNotes(editingGoal.notes || "");
-        } else {
-            setTitle("");
-            setTargetAmount("");
-            setCurrentAmount("");
-            setDeadline("");
-            setCategory("other");
-            setColor("emerald");
-            setNotes("");
-            setRecordInExpense(true);
-        }
-        setError(null);
-    }, [editingGoal, isOpen]);
+    const panelRef = useModalAccessibility<HTMLDivElement>(isOpen, onClose);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -116,6 +96,10 @@ export default function GoalFormModal({
                 <>
                     {/* Backdrop matching BudgetForm style */}
                     <motion.div
+                        ref={panelRef}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="goal-form-title"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -134,7 +118,7 @@ export default function GoalFormModal({
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 pt-7 pb-5 border-b border-slate-100/80 dark:border-slate-800">
                             <div>
-                                <h2 className="text-[17px] font-extrabold text-slate-800 dark:text-white">
+                                <h2 id="goal-form-title" className="text-[17px] font-extrabold text-slate-800 dark:text-white">
                                     {editingGoal ? "Edit Savings Goal" : "New Savings Goal"}
                                 </h2>
                                 <p className="text-[12px] text-slate-400 font-medium mt-0.5">

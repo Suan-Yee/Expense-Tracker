@@ -6,7 +6,7 @@ export const parseDateForUI = (val: string | null | undefined): Date => {
   return new Date(val);
 };
 
-export const formatDate = (dateValue: any, formatStr: string): string => {
+export const formatDate = (dateValue: string | number | Date | null | undefined, formatStr: string): string => {
   if (!dateValue) return "N/A";
   const date =
     typeof dateValue === "string" ? parseISO(dateValue) : new Date(dateValue);

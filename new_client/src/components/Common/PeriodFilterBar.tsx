@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Card } from "../ui/card";
@@ -6,7 +5,7 @@ import DateRangePicker from "../Expenses/DateRangePicker";
 import { useAnalyticsStore } from "../../store/analyticsStore";
 import type { DashboardRange } from "../../types/analytics.types";
 
-export const RANGE_OPTIONS = [
+const RANGE_OPTIONS = [
     { label: "This Month",   value: "this_month"  },
     { label: "Last Month",   value: "last_month"  },
     { label: "Last 3 Months",value: "last_3_months"},
@@ -16,7 +15,7 @@ export const RANGE_OPTIONS = [
     { label: "Custom Range", value: "custom"      },
 ];
 
-export const MONTHS = [
+const MONTHS = [
     { label: "January",   value: "0"  },
     { label: "February",  value: "1"  },
     { label: "March",     value: "2"  },
@@ -31,12 +30,12 @@ export const MONTHS = [
     { label: "December",  value: "11" },
 ];
 
-export const YEARS = Array.from({ length: 6 }, (_, i) => {
+const YEARS = Array.from({ length: 6 }, (_, i) => {
     const year = new Date().getFullYear() - 2 + i;
     return { label: year.toString(), value: year.toString() };
 });
 
-export function getRangeLabel(filters: { range: DashboardRange; startDate?: string | null; endDate?: string | null; month?: string | null; year?: string | null }) {
+function getRangeLabel(filters: { range: DashboardRange; startDate?: string | null; endDate?: string | null; month?: string | null; year?: string | null }) {
     if (filters.range === "custom" && filters.startDate && filters.endDate) {
         const fmt = (d: string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
         return `${fmt(filters.startDate)} – ${fmt(filters.endDate)}`;
@@ -51,13 +50,8 @@ export function getRangeLabel(filters: { range: DashboardRange; startDate?: stri
 export default function PeriodFilterBar() {
     const { dashFilters: filters, setFilters } = useAnalyticsStore();
 
-    const [selectedMonth, setSelectedMonth] = useState(filters.month ?? new Date().getMonth().toString());
-    const [selectedYear, setSelectedYear] = useState(filters.year ?? new Date().getFullYear().toString());
-
-    useEffect(() => {
-        if (filters.month) setSelectedMonth(filters.month);
-        if (filters.year) setSelectedYear(filters.year);
-    }, [filters.month, filters.year]);
+    const selectedMonth = filters.month ?? new Date().getMonth().toString();
+    const selectedYear = filters.year ?? new Date().getFullYear().toString();
 
     const isCustom  = filters.range === "custom";
     const isMonthMod = filters.range === "month";
@@ -77,12 +71,10 @@ export default function PeriodFilterBar() {
     };
 
     const handleMonthChange = (val: string) => {
-        setSelectedMonth(val);
         setFilters({ ...filters, month: val, year: selectedYear });
     };
 
     const handleYearChange = (val: string) => {
-        setSelectedYear(val);
         setFilters({ ...filters, year: val });
     };
 

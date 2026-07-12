@@ -18,8 +18,8 @@ export default function AnalyticsView() {
     } = useAnalyticsStore();
 
     useEffect(() => {
-        fetchDashboard();
-    }, []);
+        void fetchDashboard();
+    }, [fetchDashboard]);
 
     const totalInc = dashboardStats?.totalIncome || 0;
     const totalExp = dashboardStats?.totalExpenses || 0;

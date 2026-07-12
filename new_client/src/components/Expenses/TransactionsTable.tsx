@@ -5,11 +5,11 @@ import { CATEGORY_COLORS } from "../../constants/categories"
 import { formatCurrency } from "../../utils/formatUtils"
 import { formatDate } from "../../utils/dateUtils"
 import { motion } from "framer-motion"
+import type { Expense } from "../../types"
 
 interface TransactionsTableProps {
-  transactions: any[];
-  isPanelOpen: boolean;
-  onEdit: (transaction: any) => void;
+  transactions: Expense[];
+  onEdit: (transaction: Expense) => void;
   onDelete: (id: string) => void;
   sortConfig: { key: string; direction: "asc" | "desc" } | null;
   onSort: (key: string) => void;
@@ -32,9 +32,9 @@ export default function TransactionsTable({
   }
 
   return (
-    <div className="w-full">
+    <div className="min-w-max w-full">
       <table className="w-full text-left text-[13px]">
-        <thead>
+        <thead className="sticky top-0 z-10 bg-white/95 backdrop-blur dark:bg-slate-900/95">
           <tr className="border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
             <th className="py-3 px-3 sm:px-4 min-w-[110px]">
               <button onClick={() => onSort("date")} className="flex items-center hover:text-slate-600 transition-colors font-bold whitespace-nowrap outline-none">
@@ -99,7 +99,7 @@ export default function TransactionsTable({
                 {formatCurrency(Math.abs(tr.amount))}
               </td>
               <td className="hidden lg:table-cell py-3.5 px-3 sm:px-4 text-slate-400 text-[12px] whitespace-nowrap">
-                {formatDate(tr.insertDate || tr.createdAt, "MM/dd/yyyy HH:mm")}
+                {formatDate(tr.createdAt, "MM/dd/yyyy HH:mm")}
               </td>
               <td className="py-3.5 px-3 sm:px-4 text-center whitespace-nowrap">
                 <div className="flex items-center justify-center gap-1.5">

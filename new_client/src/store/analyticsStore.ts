@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { DashboardFilters, DashboardStats, SpendingTrend, CategoryTotal, MonthlyTotal } from "../types/analytics.types";
 import { getDashboardStats, getSpendingTrends, getCategoryTotals, getMonthlyTotals } from "../services/analyticsService";
+import type { AxiosError } from "axios";
 
 interface AnalyticsStore {
     categoryData: CategoryTotal[];
@@ -65,9 +66,10 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
                 monthlyData: Array.isArray(monthlyRes.data) ? monthlyRes.data : [],
                 isLoading: false,
             });
-        } catch (err: any) {
+        } catch (error) {
+            const err = error as AxiosError<{ message?: string }>;
             set({
-                error: err?.response?.data?.message ?? "Failed to load analytics data.",
+                error: err.response?.data?.message ?? "Failed to load analytics data.",
                 isLoading: false,
             });
         }
