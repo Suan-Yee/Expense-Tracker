@@ -151,10 +151,7 @@ export default function ExportModal({ isOpen, onClose, expenses }: ExportModalPr
         <>
           {/* Backdrop */}
           <motion.div
-            ref={modalRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="export-modal-title"
+            aria-hidden="true"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -164,11 +161,15 @@ export default function ExportModal({ isOpen, onClose, expenses }: ExportModalPr
 
           {/* Modal */}
           <motion.div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="export-modal-title"
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 24 }}
             transition={{ type: "spring", bounce: 0.25, duration: 0.4 }}
-            className="fixed left-1/2 top-1/2 z-50 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-white/95 backdrop-blur-2xl shadow-2xl shadow-slate-900/15 border border-white overflow-hidden"
+            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-[420px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-white bg-white/95 shadow-2xl shadow-slate-900/15 backdrop-blur-2xl"
           >
             {/* Gradient top accent */}
             <div className="h-1 w-full bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-500" />
@@ -182,7 +183,7 @@ export default function ExportModal({ isOpen, onClose, expenses }: ExportModalPr
                     {expenses.length} transaction{expenses.length !== 1 ? "s" : ""} · filtered view
                   </p>
                 </div>
-                <button onClick={onClose} className="flex size-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                <button type="button" aria-label="Close export dialog" onClick={onClose} className="flex size-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
                   <X size={16} strokeWidth={2.5} />
                 </button>
               </div>

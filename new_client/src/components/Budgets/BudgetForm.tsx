@@ -5,6 +5,7 @@ import { useBudgetStore } from "../../store/budgetStore";
 import type { Budget } from "../../types/budget.types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useModalAccessibility } from "../../hooks/useModalAccessibility";
+import { useNotificationStore } from "../../store/notificationStore";
 
 const CATEGORIES = [
     "food", "transport", "utilities", "entertainment",
@@ -41,6 +42,7 @@ interface BudgetFormProps {
 
 export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMonth, defaultYear }: BudgetFormProps) {
     const { createBudget, updateBudget, isLoading, error } = useBudgetStore();
+    const notify = useNotificationStore((state) => state.notify);
 
     const [category, setCategory] = useState(editingBudget?.category ?? "food");
     const [limit, setLimit] = useState(editingBudget?.limit.toString() ?? "");
@@ -51,6 +53,7 @@ export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMont
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isLoading) return;
         setFieldError(null);
 
         const parsedLimit = parseFloat(limit);
@@ -66,7 +69,23 @@ export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMont
             success = await createBudget({ category, limit: parsedLimit, month, year });
         }
 
-        if (success) onClose();
+        if (success) {
+            const categoryName = (editingBudget?.category ?? category).replace(/^./, (letter) => letter.toUpperCase());
+            notify({
+                tone: "success",
+                title: editingBudget ? "Budget updated" : "Budget created",
+                message: editingBudget
+                    ? `${categoryName} now has a monthly limit of $${parsedLimit.toLocaleString()}.`
+                    : `${categoryName} is ready for ${MONTHS[month].label} ${year}.`,
+            });
+            onClose();
+        } else {
+            notify({
+                tone: "error",
+                title: editingBudget ? "Budget wasn’t updated" : "Budget wasn’t created",
+                message: useBudgetStore.getState().error ?? "Please review the budget details and try again.",
+            });
+        }
     };
 
     return (
@@ -75,24 +94,25 @@ export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMont
                 <>
                     {/* Backdrop */}
                     <motion.div
-                        ref={panelRef}
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="budget-form-title"
+                        aria-hidden="true"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={onClose}
+                                        onClick={() => { if (!isLoading) onClose(); }}
                         className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[2px]"
                     />
 
                     {/* Panel */}
                     <motion.div
+                        ref={panelRef}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="budget-form-title"
                         initial={{ opacity: 0, x: 40 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 40 }}
                         transition={{ type: "spring", bounce: 0, duration: 0.35 }}
-                        className="fixed right-0 top-0 z-50 h-full w-[380px] flex flex-col bg-white/80 backdrop-blur-2xl border-l border-white/60 shadow-2xl shadow-slate-900/10"
+                        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-[380px] flex-col border-l border-white/60 bg-white/80 shadow-2xl shadow-slate-900/10 backdrop-blur-2xl"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 pt-7 pb-5 border-b border-slate-100/80">
@@ -107,6 +127,8 @@ export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMont
                                 </p>
                             </div>
                             <button
+                                type="button"
+                                aria-label="Close budget form"
                                 onClick={onClose}
                                 className="flex size-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
                             >
@@ -144,13 +166,14 @@ export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMont
 
                             {/* Limit */}
                             <div className="space-y-2">
-                                <label className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-slate-500">
+                                <label htmlFor="budget-limit" className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-slate-500">
                                     <DollarSign size={11} strokeWidth={2.5} />
                                     Monthly Limit
                                 </label>
                                 <div className="relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[15px]">$</span>
                                     <input
+                                        id="budget-limit"
                                         type="number"
                                         value={limit}
                                         onChange={(e) => setLimit(e.target.value)}
@@ -158,6 +181,8 @@ export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMont
                                         step="0.01"
                                         min="0.01"
                                         className="w-full rounded-xl bg-slate-50 border border-slate-200/80 pl-8 pr-4 py-3 text-[15px] font-bold text-slate-800 placeholder-slate-300 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
+                                        aria-invalid={!!(fieldError || error)}
+                                        aria-describedby={fieldError || error ? "budget-form-error" : undefined}
                                     />
                                 </div>
                             </div>
@@ -211,6 +236,8 @@ export default function BudgetForm({ isOpen, onClose, editingBudget, defaultMont
                             {/* Errors */}
                             {(fieldError || error) && (
                                 <motion.p
+                                    id="budget-form-error"
+                                    role="alert"
                                     initial={{ opacity: 0, y: -4 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     className="rounded-xl bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-600"

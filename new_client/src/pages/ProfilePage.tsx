@@ -3,6 +3,7 @@ import ProfileView from "../components/Profile/ProfileView";
 import Loader from "../components/Common/Loader";
 import GlobalError from "../components/Common/GlobalError";
 import { useAuthStore } from "../store/authStore";
+import PageHeader from "../components/Common/PageHeader";
 
 export default function ProfilePage() {
 
@@ -12,10 +13,11 @@ export default function ProfilePage() {
     }, [getProfile]);
 
     return (
-        <main className="min-h-screen pt-4 pb-12 w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <main className="page-shell max-w-7xl">
+            <PageHeader eyebrow="Account" title="Profile & security" description="Keep your personal details current and review sensitive account controls." />
             {isLoading && (
                 <div className="pt-20">
-                    <Loader text="Loading your forest tracker profile..." />
+                    <Loader text="Loading your profile…" />
                 </div>
             )}
 

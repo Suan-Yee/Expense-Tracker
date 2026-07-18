@@ -3,7 +3,7 @@ import { useNavigate, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
     Landmark, ShoppingCart, PiggyBank, RefreshCw,
-    ArrowUpRight, ArrowDownRight, ReceiptText, AlertTriangle, CheckCircle2, Clock
+    ArrowUpRight, ArrowDownRight, ReceiptText, AlertTriangle, CheckCircle2, Clock, Plus, ListChecks, PieChart, Target
 } from "lucide-react";
 import { formatCurrency } from "../../utils/formatUtils";
 import { formatDate } from "../../utils/dateUtils";
@@ -16,6 +16,8 @@ import { useBudgetStore } from "../../store/budgetStore";
 import { CATEGORY_COLORS, CATEGORY_HEX_COLORS } from "../../constants/categories";
 import PeriodFilterBar from "../Common/PeriodFilterBar";
 import KPICard from "../Common/KPICard";
+import PageHeader from "../Common/PageHeader";
+import GlobalError from "../Common/GlobalError";
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -53,23 +55,30 @@ export default function Dashboard() {
     const isLoading = analyticsLoading || expensesLoading || budgetsLoading;
 
     return (
-        <div className="mx-auto mt-6 flex w-full max-w-[1400px] animate-in flex-col gap-6 px-4 pb-12 duration-500 fade-in sm:px-6 lg:mt-8 lg:gap-8 lg:px-8">
+        <div className="page-shell gap-6 lg:gap-8">
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white">Dashboard</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Daily command center for your spending pulse and immediate actions.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <Button onClick={() => navigate({ to: "/expenses" })} className="px-5 py-2.5 font-bold shadow-sm shadow-emerald-600/20">
-                        + Log Transaction
-                    </Button>
-                </div>
-            </div>
+            <PageHeader eyebrow="Overview" title="Your financial position" description="See what changed, what needs attention, and the next best action for your money." actions={<Button onClick={() => navigate({ to: "/expenses" })}><Plus size={16} />Add transaction</Button>} />
 
             {/* Filter Bar */}
             <PeriodFilterBar />
+
+            {!isLoading && expenses.length === 0 && budgets.length === 0 && (
+                <Card className="overflow-hidden border-emerald-200 bg-emerald-50/70 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/8 sm:p-6">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="max-w-lg">
+                            <div className="mb-3 grid size-10 place-items-center rounded-xl bg-emerald-700 text-white dark:bg-emerald-400 dark:text-emerald-950"><ListChecks size={19} /></div>
+                            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Build your first financial snapshot</h2>
+                            <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">Complete these three short steps and the dashboard will begin showing useful patterns.</p>
+                        </div>
+                        <ol className="grid flex-1 gap-3 sm:grid-cols-3" aria-label="Getting started steps">
+                            <li><Button onClick={() => navigate({ to: "/expenses" })} className="h-full w-full justify-start px-4 text-left"><span className="grid size-6 place-items-center rounded-full bg-white/20 text-xs">1</span><span>Add a transaction</span></Button></li>
+                            <li><Button variant="outline" onClick={() => navigate({ to: "/budgets" })} className="h-full w-full justify-start px-4 text-left"><PieChart size={16} /><span>Set a budget</span></Button></li>
+                            <li><Button variant="outline" onClick={() => navigate({ to: "/goal" })} className="h-full w-full justify-start px-4 text-left"><Target size={16} /><span>Create a goal</span></Button></li>
+                        </ol>
+                    </div>
+                </Card>
+            )}
 
             {/* Budget Health Banner */}
             {totalBudgetLimit > 0 && (
@@ -90,20 +99,17 @@ export default function Dashboard() {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                            {budgetUsedPercent >= 75 && <Link to="/expenses" className="text-xs font-bold text-slate-700 underline hover:text-slate-900 dark:text-slate-200">Review spending</Link>}
                             <Link to="/budgets" className="text-xs font-bold underline text-slate-700 hover:text-slate-900 dark:text-emerald-400 dark:hover:text-emerald-300">
-                                Adjust Budgets &rarr;
+                                {budgetUsedPercent >= 75 ? "Adjust limits" : "View budgets"} &rarr;
                             </Link>
                         </div>
                     </div>
                 </motion.div>
             )}
 
-            {error && (
-                <div className="rounded-2xl bg-red-50 border border-red-100 px-5 py-4 text-sm font-semibold text-red-600">
-                    {error}
-                </div>
-            )}
+            {error && <GlobalError message={error} onRetry={() => void Promise.all([fetchDashboard(), getAllExpenses(), fetchBudgets()])} />}
 
             {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

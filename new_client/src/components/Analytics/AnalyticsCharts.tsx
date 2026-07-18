@@ -57,11 +57,15 @@ export default function AnalyticsCharts({ categoryData, trends }: AnalyticsChart
     const { theme } = useThemeStore();
     const isDark = theme === "dark";
 
-    const pieData = categoryData.map(cat => ({
+    const pieData = categoryData.filter((cat) => cat.total > 0).map(cat => ({
         name: cat.category,
         value: cat.total,
         fill: CATEGORY_HEX_COLORS[cat.category.toLowerCase()] || "#64748b"
     }));
+    const hasTrendData = trends.some((item) => item.income > 0 || item.expenses > 0 || item.savings > 0);
+    const categoryTotal = pieData.reduce((sum, item) => sum + item.value, 0);
+    const largestCategory = [...pieData].sort((a, b) => b.value - a.value)[0];
+    const trendTotals = trends.reduce((totals, item) => ({ income: totals.income + item.income, expenses: totals.expenses + item.expenses, savings: totals.savings + item.savings }), { income: 0, expenses: 0, savings: 0 });
 
     return (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -78,9 +82,10 @@ export default function AnalyticsCharts({ categoryData, trends }: AnalyticsChart
                         </span>
                     </div>
 
-                    <div className="my-6 flex h-[260px] items-center justify-center">
+                    <p id="expense-breakdown-summary" className="sr-only">{largestCategory ? `${largestCategory.name} is the largest spending category at ${formatCurrency(largestCategory.value)} out of ${formatCurrency(categoryTotal)} total category spending.` : "No category spending is available for the selected period."}</p>
+                    <div className="my-6 flex h-[260px] items-center justify-center" role="img" aria-label="Expense breakdown chart" aria-describedby="expense-breakdown-summary">
                         {pieData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 320, height: 260 }}>
                                 <PieChart>
                                     <Pie
                                         data={pieData}
@@ -150,9 +155,10 @@ export default function AnalyticsCharts({ categoryData, trends }: AnalyticsChart
                     </div>
                 </div>
 
-                <div className="mt-6 h-[320px] w-full">
-                    {trends.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%">
+                <p id="cashflow-chart-summary" className="sr-only">{hasTrendData ? `Across the selected period, income totals ${formatCurrency(trendTotals.income)}, expenses total ${formatCurrency(trendTotals.expenses)}, and savings total ${formatCurrency(trendTotals.savings)}.` : "No cashflow trend data is available for the selected period."}</p>
+                <div className="mt-6 h-[320px] w-full" role="img" aria-label="Monthly cashflow comparison chart" aria-describedby="cashflow-chart-summary">
+                    {hasTrendData ? (
+                        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 320, height: 320 }}>
                             <BarChart data={trends} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "#334155" : "#475569"} />
                                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: isDark ? "#94a3b8" : "#334155", fontWeight: 600 }} />

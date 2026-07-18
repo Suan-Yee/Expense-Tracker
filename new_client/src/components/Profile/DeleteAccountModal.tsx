@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "@tanstack/react-router";
 import { useModalAccessibility } from "../../hooks/useModalAccessibility";
+import { useNotificationStore } from "../../store/notificationStore";
 
 interface DeleteAccountModalProps {
   onClose: () => void;
@@ -11,6 +12,7 @@ interface DeleteAccountModalProps {
 
 export default function DeleteAccountModal({ onClose, onConfirm }: DeleteAccountModalProps) {
   const { deleteAccount, logout, error } = useAuthStore();
+  const notify = useNotificationStore((state) => state.notify);
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -18,6 +20,7 @@ export default function DeleteAccountModal({ onClose, onConfirm }: DeleteAccount
   const modalRef = useModalAccessibility<HTMLDivElement>(true, onClose);
 
   const handleDelete = async () => {
+    if (isDeleting) return;
     setIsDeleting(true);
     setLocalError("");
     setSuccessMsg("");
@@ -28,13 +31,16 @@ export default function DeleteAccountModal({ onClose, onConfirm }: DeleteAccount
     const success = await deleteAccount();
     if (success) {
       setSuccessMsg("Account deleted successfully!");
+      notify({ tone: "success", title: "Account deleted", message: "Your account and associated financial records were permanently removed." });
       setTimeout(() => {
         onConfirm(); // Optional callback
         logout();
         navigate({ to: "/login" });
       }, 1500);
     } else {
-       setLocalError(error || "Failed to delete account");
+       const deleteError = useAuthStore.getState().error || error || "Failed to delete account";
+       setLocalError(deleteError);
+       notify({ tone: "error", title: "Account wasn’t deleted", message: deleteError });
        setIsDeleting(false);
     }
   };

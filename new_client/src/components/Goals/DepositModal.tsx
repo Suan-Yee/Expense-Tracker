@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Minus, CheckCircle, AlertCircle, DollarSign, Wallet } from "lucide-react";
 import type { Goal } from "../../types/goal.types";
 import { useModalAccessibility } from "../../hooks/useModalAccessibility";
+import { useNotificationStore } from "../../store/notificationStore";
+import { useGoalStore } from "../../store/goalStore";
 
 interface DepositModalProps {
     isOpen: boolean;
@@ -17,8 +19,10 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
     const [recordInExpense, setRecordInExpense] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const notify = useNotificationStore((state) => state.notify);
 
     const handleClose = () => {
+        if (isSubmitting) return;
         setAmount("");
         setRecordInExpense(true);
         setError(null);
@@ -30,6 +34,7 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmitting) return;
         const num = Number(amount);
         if (!num || num <= 0) {
             setError("Please enter a valid positive amount");
@@ -45,10 +50,21 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
         const success = await onSubmit(goal._id, num, isDeposit, recordInExpense);
         setIsSubmitting(false);
         if (success) {
+            notify({
+                tone: "success",
+                title: isDeposit ? "Savings added" : "Withdrawal complete",
+                message: `$${num.toLocaleString()} was ${isDeposit ? "added to" : "withdrawn from"} ${goal.title}${recordInExpense ? " and recorded in your transaction history" : ""}.`,
+            });
             setAmount("");
             handleClose();
         } else {
-            setError("Something went wrong. Please try again.");
+            const updateError = useGoalStore.getState().error ?? "Something went wrong. Please try again.";
+            setError(updateError);
+            notify({
+                tone: "error",
+                title: isDeposit ? "Savings weren’t added" : "Withdrawal wasn’t completed",
+                message: updateError,
+            });
         }
     };
 
@@ -57,10 +73,7 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 {/* Backdrop */}
                 <motion.div
-                    ref={modalRef}
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="deposit-modal-title"
+                    aria-hidden="true"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -70,6 +83,10 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
 
                 {/* Modal Window */}
                 <motion.div
+                    ref={modalRef}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="deposit-modal-title"
                     initial={{ scale: 0.95, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -91,6 +108,8 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
                             </div>
                         </div>
                         <button
+                            type="button"
+                            aria-label="Close savings amount dialog"
                             onClick={handleClose}
                             className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 transition-colors"
                         >
@@ -100,7 +119,7 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
 
                     <form onSubmit={handleSubmit} className="mt-5 space-y-4">
                         {error && (
-                            <div className="flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-950/80 border border-red-200 dark:border-red-800/60 p-3 text-xs font-bold text-red-600 dark:text-red-300">
+                            <div id="goal-amount-error" role="alert" className="flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-950/80 border border-red-200 dark:border-red-800/60 p-3 text-xs font-bold text-red-600 dark:text-red-300">
                                 <AlertCircle size={16} className="shrink-0" />
                                 {error}
                             </div>
@@ -118,12 +137,13 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
 
                         {/* Amount Input */}
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                            <label htmlFor="goal-amount" className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                                 Amount ($)
                             </label>
                             <div className="relative">
                                 <DollarSign size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <input
+                                    id="goal-amount"
                                     type="number"
                                     step="any"
                                     min="0.01"
@@ -132,6 +152,8 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
                                     onChange={(e) => setAmount(e.target.value)}
                                     autoFocus
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-3 pl-10 pr-4 text-base font-bold text-slate-800 dark:text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                    aria-invalid={!!error}
+                                    aria-describedby={error ? "goal-amount-error" : "goal-recording-help"}
                                 />
                             </div>
                         </div>
@@ -143,19 +165,26 @@ export default function DepositModal({ isOpen, onClose, goal, isDeposit, onSubmi
                                 checked={recordInExpense}
                                 onChange={(e) => setRecordInExpense(e.target.checked)}
                                 className="mt-0.5 size-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                aria-describedby="goal-recording-help"
                             />
                             <div className="text-xs">
                                 <p className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1">
                                     <CheckCircle size={13} className="text-emerald-500 inline" />
                                     Record in Expense tracker history
                                 </p>
-                                <p className="text-slate-400 mt-0.5 leading-relaxed">
+                                <p id="goal-recording-help" className="text-slate-400 mt-0.5 leading-relaxed">
                                     {isDeposit
                                         ? "Automatically deducts from available budget as a savings expense."
                                         : "Automatically adds back to your tracked income/funds."}
                                 </p>
                             </div>
                         </label>
+
+                        <div className={`rounded-xl border px-3.5 py-3 text-xs leading-5 ${recordInExpense ? "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200" : "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-300"}`}>
+                            {recordInExpense
+                                ? isDeposit ? "This deposit will also appear as a savings transaction and reduce available cashflow." : "This withdrawal will also appear as income and increase available cashflow."
+                                : "Only the goal balance will change; dashboard and transaction totals will not be affected."}
+                        </div>
 
                         {/* Actions */}
                         <div className="flex gap-3 pt-2">

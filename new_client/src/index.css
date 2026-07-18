@@ -5,29 +5,101 @@
 :root {
   --brand-green: #10b981;
   --brand-green-hover: #059669;
-  --app-background: linear-gradient(180deg, #f7faf8 0%, #eef5f1 48%, #e3ede7 100%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  --color-canvas: #f5f7f5;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f0f4f1;
+  --color-border: #dce5df;
+  --color-ink: #17221c;
+  --color-muted: #66736b;
+  --color-brand: #087f5b;
+  --color-brand-strong: #066747;
+  --radius-card: 18px;
+  --radius-control: 12px;
+  --shadow-surface: 0 1px 2px rgba(18, 45, 31, 0.05), 0 12px 30px rgba(18, 45, 31, 0.05);
+  --app-background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.84' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.032'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 8% 12%, rgba(88, 116, 91, 0.12), transparent 27%),
+    radial-gradient(circle at 94% 88%, rgba(117, 137, 95, 0.12), transparent 30%),
+    linear-gradient(180deg, #fafbf8 0%, #f3f7f2 48%, #eaf1eb 100%);
+  --moss-grid-line: rgba(58, 82, 65, 0.045);
+  --moss-grid-opacity: 0.32;
+  --moss-reading-veil: radial-gradient(ellipse 68% 62% at 56% 42%, rgba(250, 252, 249, 0.58), transparent 78%);
 }
 
 .dark {
-  --app-background: radial-gradient(circle at 20% 0%, rgba(16, 185, 129, 0.16), transparent 28%),
-    linear-gradient(180deg, #07111f 0%, #0b1726 46%, #0f241f 100%),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  --color-canvas: #09120e;
+  --color-surface: #111d17;
+  --color-surface-subtle: #16251d;
+  --color-border: #294137;
+  --color-ink: #eef6f1;
+  --color-muted: #9eb0a5;
+  --color-brand: #3dd6a0;
+  --color-brand-strong: #75e7bc;
+  --shadow-surface: 0 1px 2px rgba(0, 0, 0, 0.25), 0 18px 40px rgba(0, 0, 0, 0.18);
+  --app-background:
+    radial-gradient(circle at 20% 0%, rgba(16, 185, 129, 0.16), transparent 28%),
+    linear-gradient(180deg, #07111f 0%, #0b1726 46%, #0f241f 100%);
+  --moss-grid-line: rgba(148, 163, 184, 0.08);
+  --moss-grid-opacity: 0.15;
+  --moss-reading-veil: transparent;
 }
 
 @layer base {
   body {
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #0f172a;
+    color: var(--color-ink);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     transition: background-color 180ms ease, color 180ms ease;
+    background: var(--color-canvas);
+  }
+
+  button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 3px solid rgb(16 185 129 / 0.35);
+    outline-offset: 2px;
   }
 
   .dark body {
-    color: #e2e8f0;
+    color: var(--color-ink);
   }
+}
+
+.moss-backdrop {
+  background: var(--app-background);
+  background-blend-mode: soft-light, normal, normal, normal;
+}
+
+.moss-canvas {
+  opacity: 0.25;
+  mix-blend-mode: normal;
+}
+
+.moss-grid {
+  background-image:
+    linear-gradient(90deg, var(--moss-grid-line) 1px, transparent 1px),
+    linear-gradient(180deg, var(--moss-grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: var(--moss-grid-opacity);
+  -webkit-mask-image: linear-gradient(to bottom, #000, rgb(0 0 0 / 0.35) 65%, transparent);
+  mask-image: linear-gradient(to bottom, #000, rgb(0 0 0 / 0.35) 65%, transparent);
+}
+
+.moss-reading-veil {
+  background: var(--moss-reading-veil);
+}
+
+.dark .moss-backdrop {
+  background-blend-mode: soft-light, normal, normal;
+}
+
+.dark .moss-canvas {
+  opacity: 0.35;
+  mix-blend-mode: screen;
 }
 
 /* Applied briefly only while switching themes. Keeping this opt-in prevents
@@ -49,6 +121,13 @@ html.theme-transition canvas {
   html.theme-transition body,
   html.theme-transition body * {
     transition-duration: 0ms !important;
+  }
+
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -85,6 +164,41 @@ html.theme-transition canvas {
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-2.5 text-[14px] font-bold text-white shadow-sm shadow-emerald-500/20 transition-all hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:opacity-65;
+  }
+
+  .page-shell {
+    @apply relative isolate mx-auto flex min-h-[100svh] w-full max-w-[1520px] flex-col px-4 pb-28 pt-6 sm:px-6 sm:pt-8 lg:px-10 lg:pb-12;
+  }
+
+  .page-header {
+    @apply mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between lg:mb-8;
+  }
+
+  .page-eyebrow {
+    @apply mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-300;
+  }
+
+  .page-title {
+    @apply text-[28px] font-bold leading-tight tracking-[-0.025em] text-slate-900 dark:text-white sm:text-[32px];
+  }
+
+  .page-subtitle {
+    @apply mt-1.5 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400;
+  }
+
+  .app-surface {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+    box-shadow: var(--shadow-surface);
+  }
+
+  .control-label {
+    @apply mb-2 block text-xs font-semibold text-slate-700 dark:text-slate-300;
+  }
+
+  .icon-button {
+    @apply inline-grid size-11 place-items-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white;
   }
 }
 
@@ -253,7 +367,8 @@ html.theme-transition canvas {
     scrollbar-width: none;
 }
 
-/* Remove focus outline/border when clicking pie charts or bar charts */
+/* Recharts adds focus to SVG groups. Keep a visible keyboard affordance while
+   avoiding the heavy browser outline on pointer interaction. */
 .recharts-wrapper,
 .recharts-surface,
 .recharts-layer,
@@ -263,6 +378,10 @@ html.theme-transition canvas {
 .recharts-responsive-container,
 .recharts-wrapper *,
 .recharts-surface * {
-  outline: none !important;
   border: none !important;
+}
+
+.recharts-wrapper :focus:not(:focus-visible),
+.recharts-surface :focus:not(:focus-visible) {
+  outline: none;
 }

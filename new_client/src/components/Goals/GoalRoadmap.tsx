@@ -7,6 +7,7 @@ interface Props {
     onEdit: (goal: Goal) => void;
     onDelete: (id: string) => void;
     onDeposit: (goal: Goal, isDeposit: boolean) => void;
+    onCreate: () => void;
 }
 
 const PAGE_LOADED_AT = Date.now();
@@ -20,7 +21,7 @@ function getTiming(goal: Goal) {
     return { label: days === 0 ? "Due today" : `${days} days left`, date: deadline.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }), overdue: false, months: Math.max(Math.ceil(days / 30.44), 1) };
 }
 
-export default function GoalRoadmap({ goals, onEdit, onDelete, onDeposit }: Props) {
+export default function GoalRoadmap({ goals, onEdit, onDelete, onDeposit, onCreate }: Props) {
     const sortedGoals = useMemo(() => [...goals].sort((a, b) => {
         const aDone = a.currentAmount >= a.targetAmount;
         const bDone = b.currentAmount >= b.targetAmount;
@@ -66,21 +67,30 @@ export default function GoalRoadmap({ goals, onEdit, onDelete, onDeposit }: Prop
                 </div>
             </div>
 
-            <div className="min-h-0 overflow-y-auto p-4 sm:p-5 lg:overflow-hidden lg:p-5">
+            <div className={`flex min-h-0 flex-col p-4 sm:p-5 lg:p-5 ${completed ? "lg:overflow-y-auto" : "lg:overflow-y-hidden"}`}>
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div><div className="mb-2 flex items-center gap-2"><span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ${completed ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300" : timing.overdue ? "bg-red-50 text-red-600 dark:bg-red-500/15" : "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"}`}>{completed ? <Check size={10} /> : timing.overdue ? <Flag size={10} /> : <Target size={10} />}{timing.label}</span><span className="text-[10px] font-bold capitalize text-slate-400">{selected.category}</span></div><h2 className="text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">{selected.title}</h2>{selected.notes && <p className="mt-2 max-w-xl text-xs leading-relaxed text-slate-500 dark:text-slate-400">{selected.notes}</p>}</div>
-                    <div className="flex gap-1"><button onClick={() => onEdit(selected)} aria-label="Edit selected goal" className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"><Pencil size={15} /></button><button onClick={() => onDelete(selected._id)} aria-label="Delete selected goal" className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"><Trash2 size={15} /></button></div>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                        {!completed && <>
+                            <button onClick={() => onDeposit(selected, true)} className="inline-flex min-h-9 items-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-extrabold text-white shadow-sm hover:bg-emerald-700"><Plus size={14} strokeWidth={3} />Add savings</button>
+                            <button onClick={() => onDeposit(selected, false)} disabled={selected.currentAmount <= 0} className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"><Minus size={14} />Withdraw</button>
+                        </>}
+                        <div className="flex gap-1">
+                            <button onClick={() => onEdit(selected)} aria-label="Edit selected goal" className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800"><Pencil size={15} /></button>
+                            <button onClick={() => onDelete(selected._id)} aria-label="Delete selected goal" className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"><Trash2 size={15} /></button>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="mt-5"><div className="flex flex-wrap items-end justify-between gap-3"><p><span className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">${selected.currentAmount.toLocaleString()}</span><span className="ml-2 text-sm font-bold text-slate-400">of ${selected.targetAmount.toLocaleString()}</span></p><span className="text-xl font-black text-emerald-600 dark:text-emerald-400">{percentage}%</span></div><div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700"><div className={`h-full rounded-full ${completed ? "bg-amber-400" : timing.overdue ? "bg-red-500" : "bg-emerald-500"}`} style={{ width: `${percentage}%` }} /></div></div>
+                <div className="mt-5"><div className="flex flex-wrap items-end justify-between gap-3"><p><span className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">${selected.currentAmount.toLocaleString()}</span><span className="ml-2 text-sm font-bold text-slate-400">of ${selected.targetAmount.toLocaleString()}</span></p><span className="text-xl font-black text-emerald-600 dark:text-emerald-400">{percentage}%</span></div><div role="progressbar" aria-label={`${selected.title} savings progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage} className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700"><div className={`h-full rounded-full ${completed ? "bg-amber-400" : timing.overdue ? "bg-red-500" : "bg-emerald-500"}`} style={{ width: `${percentage}%` }} /></div></div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2.5 xl:grid-cols-3">
+                {completed && <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><div className="grid size-10 shrink-0 place-items-center rounded-xl bg-amber-400 text-amber-950"><Trophy size={19} /></div><div><h3 className="text-sm font-semibold text-slate-900 dark:text-white">Goal complete—well done.</h3><p className="mt-0.5 text-xs leading-5 text-slate-600 dark:text-slate-400">Keep the momentum going by choosing your next milestone.</p></div></div><button type="button" onClick={onCreate} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 text-xs font-semibold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900"><Plus size={14} />Create another goal</button></div>}
+
+                <div className="mt-auto grid grid-cols-2 gap-2.5 pt-4 xl:grid-cols-3">
                     <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/70"><p className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wide text-slate-400"><Target size={11} />Remaining</p><p className="mt-1.5 text-base font-black text-slate-800 dark:text-white">${remaining.toLocaleString()}</p></div>
                     <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/70"><p className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wide text-slate-400"><CalendarDays size={11} />Deadline</p><p className={`mt-1.5 text-sm font-black ${timing.overdue ? "text-red-600" : "text-slate-800 dark:text-white"}`}>{timing.date}</p></div>
                     <div className="col-span-2 rounded-xl bg-emerald-50 p-3 dark:bg-emerald-500/10 xl:col-span-1"><p className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wide text-emerald-700 dark:text-emerald-300"><Clock3 size={11} />Suggested pace</p><p className="mt-1.5 text-base font-black text-slate-800 dark:text-white">{completed ? "Finished" : perMonth ? `$${perMonth.toLocaleString()} / month` : "Flexible"}</p></div>
                 </div>
-
-                {!completed && <div className="mt-4 flex flex-wrap gap-2"><button onClick={() => onDeposit(selected, true)} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-sm hover:bg-emerald-700"><Plus size={14} strokeWidth={3} />Add savings</button><button onClick={() => onDeposit(selected, false)} disabled={selected.currentAmount <= 0} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"><Minus size={14} />Withdraw</button></div>}
             </div>
         </section>
     );

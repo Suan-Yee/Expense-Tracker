@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import { AppError } from "../middlewares/errorHandler";
 import { asyncHandler, sendSuccess } from "../utils/responseHelpers";
 import User from "../models/User";
+import Expense from "../models/Expense";
+import Budget from "../models/Budget";
+import Goal from "../models/Goal";
 import bcrypt from "bcryptjs";
 
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
@@ -113,10 +116,17 @@ export const changePassword = asyncHandler(async (req: Request, res: Response) =
 export const deleteAccount = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.userId;
 
-    const user = await User.findByIdAndDelete(userId);
+    const user = await User.findById(userId);
     if (!user) {
         throw new AppError("User not found", 404);
     }
+
+    await Promise.all([
+        Expense.deleteMany({ userId }),
+        Budget.deleteMany({ userId }),
+        Goal.deleteMany({ userId }),
+    ]);
+    await user.deleteOne();
 
     sendSuccess(res, null, "Account deleted successfully", 200);
 });

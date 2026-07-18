@@ -15,6 +15,9 @@ interface ExpenseStore extends ExpenseState {
 }
 
 let expenseRequestSequence = 0;
+const PAGE_SIZE_KEY = "EXPENSE_PAGE_SIZE";
+const storedPageSize = Number(localStorage.getItem(PAGE_SIZE_KEY));
+const initialPageSize = [10, 20, 50].includes(storedPageSize) ? storedPageSize : 10;
 
 export const useExpenseStore = create<ExpenseStore>((set, get) => ({
     expenses: [],
@@ -23,11 +26,14 @@ export const useExpenseStore = create<ExpenseStore>((set, get) => ({
     currentExpense: null,
     totalCount: 0,
     currentPage: 1,
-    itemsPerPage: 10,
+    itemsPerPage: initialPageSize,
     filters: { category: "all", sort: "-date", search: "", startDate: null, endDate: null },
 
     setCurrentPage: (page: number) => set({ currentPage: page }),
-    setItemsPerPage: (limit: number) => set({ itemsPerPage: limit, currentPage: 1 }),
+    setItemsPerPage: (limit: number) => {
+        localStorage.setItem(PAGE_SIZE_KEY, String(limit));
+        set({ itemsPerPage: limit, currentPage: 1 });
+    },
 
     createExpense: async (data: ExpenseFormData) => {
         set({ isLoading: true, error: null });

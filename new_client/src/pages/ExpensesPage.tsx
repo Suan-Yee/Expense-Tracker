@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, ReceiptText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import FiltersBar from "../components/Expenses/FiltersBar";
 import TransactionsTable from "../components/Expenses/TransactionsTable";
@@ -10,6 +10,11 @@ import { useExpenseStore } from "../store/expenseStore";
 import ActionConfirmModal from "../components/Common/ActionConfirmModal";
 import type { Expense } from "../types";
 import { useModalAccessibility } from "../hooks/useModalAccessibility";
+import PageHeader from "../components/Common/PageHeader";
+import EmptyState from "../components/Common/EmptyState";
+import { Button } from "../components/ui/button";
+import { useNotificationStore } from "../store/notificationStore";
+import GlobalError from "../components/Common/GlobalError";
 
 export default function ExpensesPage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -17,9 +22,11 @@ export default function ExpensesPage() {
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
 
-  const { expenses, getAllExpenses, deleteExpense, setFilters, filters, isLoading, currentPage = 1, itemsPerPage = 10 } = useExpenseStore();
+  const { expenses, getAllExpenses, deleteExpense, setFilters, filters, isLoading, error, currentPage = 1, itemsPerPage = 10 } = useExpenseStore();
+  const notify = useNotificationStore((state) => state.notify);
 
   const paginatedExpenses = expenses.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const hasActiveFilters = Boolean(filters.search || filters.startDate || filters.endDate || (filters.category && filters.category !== "all"));
 
   // Map backend sort string ("-date", "amount") to table sortConfig ({ key, direction })
   const sortConfig = filters.sort ? {
@@ -58,64 +65,74 @@ export default function ExpensesPage() {
   const confirmDelete = async () => {
     if (transactionToDelete) {
       await deleteExpense(transactionToDelete);
-      setTransactionToDelete(null);
-      if (isPanelOpen) {
-        closePanel();
+      const deleteError = useExpenseStore.getState().error;
+      if (!deleteError) {
+        notify({ tone: "success", title: "Transaction deleted", message: "The transaction was removed from your records." });
+        setTransactionToDelete(null);
+        if (isPanelOpen) closePanel();
+      } else {
+        notify({ tone: "error", title: "Transaction wasn’t deleted", message: deleteError });
       }
     }
   };
 
   return (
-    <div className="relative isolate flex h-[calc(100svh-5rem)] min-h-0 w-full flex-col overflow-hidden px-4 py-6 sm:px-8 lg:h-[100svh] lg:px-10 lg:py-8">
-      {/* Header section */}
-      <div className="z-10 mb-6 flex w-full shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between lg:mb-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
-          Expenses
-        </h1>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
+    <div className="page-shell lg:h-[100svh] lg:overflow-hidden">
+      <PageHeader
+        eyebrow="Transactions"
+        title="Expenses"
+        description="Review every movement of money, find what you need, and keep your records accurate."
+        actions={<>
+          <Button variant="outline"
             onClick={() => setIsExportOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900/78 dark:text-slate-200 dark:hover:bg-slate-800"
+            disabled={expenses.length === 0}
           >
             <Download size={15} strokeWidth={2.5} />
             Export
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={openAddPanel}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-emerald-500/20 transition-all hover:bg-emerald-700 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400"
           >
             <Plus size={16} strokeWidth={3} />
-            Add Expense
-          </button>
-        </div>
-      </div>
+            Add transaction
+          </Button>
+        </>}
+      />
 
       {/* Main Content Area */}
       <div className="z-10 flex min-h-0 w-full flex-1 flex-col gap-6 overflow-hidden">
         
         {/* Left Side: Table & Filters */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-white/60 bg-white/78 p-4 shadow-sm shadow-slate-200/50 backdrop-blur-xl sm:p-6 dark:border-slate-800 dark:bg-slate-900/78 dark:shadow-slate-950/40">
+          <div className="app-surface flex min-h-0 flex-1 flex-col overflow-hidden p-4 sm:p-5">
             <FiltersBar />
             
             <div className="relative mt-4 min-h-0 min-w-0 flex-1 overflow-auto scroll-smooth [scrollbar-gutter:stable]">
                 {isLoading && (
-                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/40 backdrop-blur-[1px]">
-                     <div className="size-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/75 dark:bg-slate-900/75" role="status" aria-label="Loading transactions">
+                     <div className="size-9 animate-spin rounded-full border-[3px] border-emerald-200 border-t-emerald-700" />
                   </div>
                 )}
-                <TransactionsTable 
+                {!isLoading && error && expenses.length === 0 ? (
+                  <GlobalError message={error} onRetry={() => void getAllExpenses()} />
+                ) : <TransactionsTable
                 transactions={paginatedExpenses} 
                 onEdit={openEditPanel} 
                 onDelete={(id) => setTransactionToDelete(id)}
                 sortConfig={sortConfig}
                 onSort={handleSort}
-                />
+                />}
                 
-                {!isLoading && expenses.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-48 text-slate-400">
-                    <p className="text-sm font-medium">No transactions found</p>
-                  </div>
+                {!isLoading && !error && expenses.length === 0 && (
+                  <EmptyState
+                    compact
+                    icon={ReceiptText}
+                    title={hasActiveFilters ? "No matching transactions" : "Start with your first transaction"}
+                    description={hasActiveFilters ? "Try a broader date range or clear the current filters." : "Add income, spending, or savings to build your financial overview."}
+                    action={hasActiveFilters
+                      ? <Button variant="outline" size="sm" onClick={() => setFilters({ search: "", category: "all", startDate: undefined, endDate: undefined })}>Clear filters</Button>
+                      : <Button size="sm" onClick={openAddPanel}><Plus size={15} /> Add transaction</Button>}
+                  />
                 )}
             </div>
             

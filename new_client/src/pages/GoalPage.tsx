@@ -9,11 +9,16 @@ import GoalLoader from "../components/Goals/GoalLoader";
 import GoalRoadmap from "../components/Goals/GoalRoadmap";
 import ActionConfirmModal from "../components/Common/ActionConfirmModal";
 import type { Goal } from "../types/goal.types";
+import PageHeader from "../components/Common/PageHeader";
+import EmptyState from "../components/Common/EmptyState";
+import { Button } from "../components/ui/button";
+import { useNotificationStore } from "../store/notificationStore";
+import GlobalError from "../components/Common/GlobalError";
 
 type GoalFilterTab = "all" | "active" | "completed";
 
 export default function GoalPage() {
-    const { goals, fetchGoals, createGoal, updateGoal, deleteGoal, isLoading } = useGoalStore();
+    const { goals, fetchGoals, createGoal, updateGoal, deleteGoal, isLoading, error } = useGoalStore();
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
@@ -26,6 +31,7 @@ export default function GoalPage() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const [filterTab, setFilterTab] = useState<GoalFilterTab>("all");
+    const notify = useNotificationStore((state) => state.notify);
 
     useEffect(() => {
         fetchGoals();
@@ -49,10 +55,17 @@ export default function GoalPage() {
 
     const handleConfirmDelete = async () => {
         if (!deleteId) return;
+        const goal = goals.find((item) => item._id === deleteId);
         setIsDeleting(true);
         await deleteGoal(deleteId);
         setIsDeleting(false);
-        setDeleteId(null);
+        const deleteError = useGoalStore.getState().error;
+        if (!deleteError) {
+            notify({ tone: "success", title: "Goal deleted", message: `${goal?.title ?? "The savings goal"} was removed. Existing transaction history was kept.` });
+            setDeleteId(null);
+        } else {
+            notify({ tone: "error", title: "Goal wasn’t deleted", message: deleteError });
+        }
     };
 
     const handleDepositSubmit = async (
@@ -81,22 +94,11 @@ export default function GoalPage() {
     };
 
     return (
-        <div className="relative isolate flex min-h-[100svh] w-full flex-col overflow-hidden px-4 py-5 sm:px-8 lg:h-[100svh] lg:px-10 lg:py-6">
-            {/* Header */}
-            <div className="z-10 mb-4 flex w-full flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-white">Savings Goals</h1>
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Set milestones, track targets, and grow your wealth</p>
-                </div>
-
-                <button
-                    onClick={openAdd}
-                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-emerald-700 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400"
-                >
+        <div className="page-shell lg:h-[100svh] lg:overflow-hidden lg:pb-4">
+            <PageHeader eyebrow="Savings roadmap" title="Goals" description="Turn meaningful plans into visible milestones and keep each contribution intentional." actions={<Button onClick={openAdd}>
                     <Plus size={16} strokeWidth={3} />
-                    New Goal
-                </button>
-            </div>
+                    New goal
+                </Button>} />
 
             {/* Summary strip */}
             {!isLoading && goals.length > 0 && (
@@ -137,44 +139,23 @@ export default function GoalPage() {
             <div className="z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden lg:overflow-hidden">
                 {isLoading && goals.length === 0 ? (
                     <GoalLoader />
+                ) : error && goals.length === 0 ? (
+                    <GlobalError message={error} onRetry={() => void fetchGoals()} />
                 ) : goals.length === 0 ? (
                     /* Empty state */
                     <motion.div
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-col items-center justify-center h-80 gap-4"
+                        className="app-surface"
                     >
-                        <div className="flex size-20 items-center justify-center rounded-3xl bg-emerald-50 dark:bg-emerald-950/60 ring-1 ring-emerald-200 dark:ring-emerald-800/50 shadow-inner">
-                            <Target size={36} className="text-emerald-500 dark:text-emerald-400 animate-bounce" strokeWidth={1.8} />
-                        </div>
-                        <div className="text-center max-w-sm">
-                            <p className="text-[18px] font-extrabold text-slate-800 dark:text-white">No savings goals yet</p>
-                            <p className="text-[13px] text-slate-400 mt-1 leading-relaxed">
-                                Create your first financial milestone today. Whether it's an emergency fund or a dream vacation, we'll help you get there.
-                            </p>
-                        </div>
-                        <button
-                            onClick={openAdd}
-                            className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 hover:-translate-y-0.5 transition-all mt-2"
-                        >
-                            <Plus size={16} strokeWidth={3} />
-                            Create Your First Goal
-                        </button>
+                        <EmptyState icon={Target} title="Create a goal worth tracking" description="Set a target, choose a date, and add savings as you make progress." action={<Button onClick={openAdd}><Plus size={16} />Create first goal</Button>} />
                     </motion.div>
                 ) : filteredGoals.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-64 text-center">
-                        <p className="text-base font-bold text-slate-600 dark:text-slate-300">No goals found in this view</p>
-                        <button
-                            onClick={() => setFilterTab("all")}
-                            className="mt-3 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200"
-                        >
-                            Show All Goals
-                        </button>
-                    </div>
+                    <div className="app-surface"><EmptyState compact icon={Target} title="Nothing in this view" description="There are no goals with this status yet." action={<Button variant="outline" size="sm" onClick={() => setFilterTab("all")}>Show all goals</Button>} /></div>
                 ) : (
                     <AnimatePresence mode="popLayout">
-                        <div className="h-full pb-4">
-                            <GoalRoadmap goals={filteredGoals} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onDeposit={openDepositModal} />
+                        <div className="h-full pb-4 lg:pb-0">
+                            <GoalRoadmap goals={filteredGoals} onEdit={openEdit} onDelete={(id) => setDeleteId(id)} onDeposit={openDepositModal} onCreate={openAdd} />
                         </div>
                     </AnimatePresence>
                 )}

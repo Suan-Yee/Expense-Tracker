@@ -2,6 +2,7 @@ import { X, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { useModalAccessibility } from "../../hooks/useModalAccessibility";
+import { useNotificationStore } from "../../store/notificationStore";
 
 interface PasswordModalProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ interface PasswordModalProps {
 
 export default function PasswordModal({ onClose, inputClasses }: PasswordModalProps) {
   const { changePassword, error } = useAuthStore();
+  const notify = useNotificationStore((state) => state.notify);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,6 +25,7 @@ export default function PasswordModal({ onClose, inputClasses }: PasswordModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setLocalError("");
     setSuccessMsg("");
 
@@ -37,10 +40,13 @@ export default function PasswordModal({ onClose, inputClasses }: PasswordModalPr
 
     if (success) {
       setSuccessMsg("Password updated successfully!");
+      notify({ tone: "success", title: "Password updated", message: "Your new password is now active." });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setTimeout(onClose, 1500);
+    } else {
+      notify({ tone: "error", title: "Password wasn’t updated", message: useAuthStore.getState().error ?? "Check your current password and try again." });
     }
   };
 
@@ -59,7 +65,7 @@ export default function PasswordModal({ onClose, inputClasses }: PasswordModalPr
         </div>
 
         {(error || localError) && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50/90 px-3 py-2.5 text-[13px] font-medium text-red-600 shadow-sm backdrop-blur-sm">
+            <div id="password-form-error" role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50/90 px-3 py-2.5 text-[13px] font-medium text-red-600 shadow-sm backdrop-blur-sm">
               {error || localError}
             </div>
         )}
@@ -72,17 +78,20 @@ export default function PasswordModal({ onClose, inputClasses }: PasswordModalPr
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-xs font-bold tracking-wide text-slate-600 mb-1.5">
+            <label htmlFor="current-password" className="block text-xs font-bold tracking-wide text-slate-600 mb-1.5">
               Current Password
             </label>
             <div className="relative">
               <input 
+                id="current-password"
                 type={showCurrentPassword ? "text" : "password"}
                 className={`${inputClasses} pr-10`} 
                 required 
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 disabled={isSubmitting}
+                aria-invalid={!!(error || localError)}
+                aria-describedby={error || localError ? "password-form-error" : undefined}
               />
               <button
                 type="button"
@@ -95,17 +104,20 @@ export default function PasswordModal({ onClose, inputClasses }: PasswordModalPr
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold tracking-wide text-slate-600 mb-1.5">
+            <label htmlFor="new-password" className="block text-xs font-bold tracking-wide text-slate-600 mb-1.5">
               New Password
             </label>
             <div className="relative">
               <input 
+                id="new-password"
                 type={showNewPassword ? "text" : "password"}
                 className={`${inputClasses} pr-10`} 
                 required 
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 disabled={isSubmitting}
+                aria-invalid={!!(error || localError)}
+                aria-describedby={error || localError ? "password-form-error" : undefined}
               />
               <button
                 type="button"
@@ -118,17 +130,20 @@ export default function PasswordModal({ onClose, inputClasses }: PasswordModalPr
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold tracking-wide text-slate-600 mb-1.5">
+            <label htmlFor="confirm-password" className="block text-xs font-bold tracking-wide text-slate-600 mb-1.5">
               Confirm New Password
             </label>
             <div className="relative">
               <input 
+                id="confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
                 className={`${inputClasses} pr-10`} 
                 required 
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isSubmitting}
+                aria-invalid={!!(error || localError)}
+                aria-describedby={error || localError ? "password-form-error" : undefined}
               />
               <button
                 type="button"

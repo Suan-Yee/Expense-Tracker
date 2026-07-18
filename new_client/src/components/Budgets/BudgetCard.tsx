@@ -13,9 +13,9 @@ const CATEGORY_CONFIG: Record<string, { icon: React.ElementType; color: string; 
     other: { icon: MoreHorizontal, color: "text-slate-600 dark:text-slate-400", bg: "bg-slate-100 dark:bg-slate-700" },
 };
 
-interface BudgetCardProps { budget: Budget; onEdit: (budget: Budget) => void; onDelete: (id: string) => void; index: number }
+interface BudgetCardProps { budget: Budget; onEdit: (budget: Budget) => void; onDelete: (id: string) => void; onReview: (budget: Budget) => void; index: number }
 
-export default function BudgetCard({ budget, onEdit, onDelete, index }: BudgetCardProps) {
+export default function BudgetCard({ budget, onEdit, onDelete, onReview, index }: BudgetCardProps) {
     const config = CATEGORY_CONFIG[budget.category] ?? CATEGORY_CONFIG.other;
     const Icon = config.icon;
     const isOver = budget.percentage >= 100;
@@ -26,7 +26,7 @@ export default function BudgetCard({ budget, onEdit, onDelete, index }: BudgetCa
         <motion.article
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             transition={{ duration: .2, delay: index * .025 }}
-            className="group grid gap-4 border-b border-slate-100 px-4 py-4 last:border-0 hover:bg-slate-50/70 sm:grid-cols-[minmax(145px,1fr)_minmax(220px,2fr)_125px_88px] sm:items-center sm:px-5 dark:border-slate-700/60 dark:hover:bg-slate-800/45"
+            className="group grid gap-4 border-b border-slate-100 px-4 py-4 last:border-0 hover:bg-slate-50/70 sm:grid-cols-[minmax(145px,1fr)_minmax(220px,2fr)_125px_88px] sm:items-center sm:px-5 sm:py-3 dark:border-slate-700/60 dark:hover:bg-slate-800/45"
         >
             <div className="flex min-w-0 items-center gap-3">
                 <div className={`grid size-10 shrink-0 place-items-center rounded-xl ${config.bg}`}><Icon size={18} className={config.color} /></div>
@@ -35,7 +35,7 @@ export default function BudgetCard({ budget, onEdit, onDelete, index }: BudgetCa
 
             <div className="space-y-2">
                 <div className="flex justify-between text-xs"><span className="font-bold text-slate-600 dark:text-slate-300">${budget.spent.toLocaleString()} spent</span><span className="text-slate-400">of ${budget.limit.toLocaleString()}</span></div>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700"><motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(budget.percentage, 100)}%` }} transition={{ duration: .55 }} className={`h-full rounded-full ${barColor}`} /></div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700" role="progressbar" aria-label={`${budget.category} budget usage`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(Math.round(budget.percentage), 100)}><motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(budget.percentage, 100)}%` }} transition={{ duration: .55 }} className={`h-full rounded-full ${barColor}`} /></div>
             </div>
 
             <div className="flex items-center justify-between sm:block sm:text-right">
@@ -43,6 +43,8 @@ export default function BudgetCard({ budget, onEdit, onDelete, index }: BudgetCa
                     {isWarning || isOver ? <AlertTriangle size={11} /> : <CheckCircle2 size={11} />}{isOver ? "Over" : isWarning ? "Near limit" : "On track"}
                 </span>
                 <p className={`mt-1 text-xs font-bold ${budget.remaining < 0 ? "text-red-500" : "text-slate-500 dark:text-slate-400"}`}>{budget.remaining >= 0 ? `$${budget.remaining.toLocaleString()} left` : `$${Math.abs(budget.remaining).toLocaleString()} over`}</p>
+                <p className="mt-1 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{isOver ? "Limit exceeded—review spending or raise the limit." : isWarning ? "Close to the limit—consider slowing this category." : `${Math.max(0, 100 - Math.round(budget.percentage))}% of this limit remains.`}</p>
+                {(isWarning || isOver) && <button type="button" onClick={() => onReview(budget)} className="mt-1.5 text-[11px] font-semibold text-emerald-700 underline underline-offset-2 hover:text-emerald-900 dark:text-emerald-300">Review transactions</button>}
             </div>
 
             <div className="flex justify-end gap-1">

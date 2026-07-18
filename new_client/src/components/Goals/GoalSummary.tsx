@@ -20,7 +20,7 @@ export default function GoalSummary({ goals }: GoalSummaryProps) {
                         </div>
                         <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">{percentage}%</p>
                     </div>
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${percentage}%` }} /></div>
+                    <div role="progressbar" aria-label="Overall savings progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage} className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${percentage}%` }} /></div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2.5 lg:border-l lg:border-slate-100 lg:pl-5 dark:lg:border-slate-700/70">

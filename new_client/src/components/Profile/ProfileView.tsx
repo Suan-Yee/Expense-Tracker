@@ -1,5 +1,6 @@
 import { ShieldAlert, Trash2, KeyRound, Upload, X, Pencil, Check, Loader } from "lucide-react"
 import { useState } from "react"
+import { useBlocker } from "@tanstack/react-router"
 import { useAuthStore } from "../../store/authStore"
 import type { User } from "../../types"
 import PasswordModal from "./PasswordModal"
@@ -7,6 +8,8 @@ import DeleteAccountModal from "./DeleteAccountModal"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
+import { useNotificationStore } from "../../store/notificationStore"
+import ActionConfirmModal from "../Common/ActionConfirmModal"
 
 interface ProfileViewProps {
     user: User;
@@ -14,6 +17,7 @@ interface ProfileViewProps {
 
 export default function ProfileView({ user }: ProfileViewProps) {
     const { updateProfile } = useAuthStore()
+    const notify = useNotificationStore((state) => state.notify)
 
     const [isEditing, setIsEditing] = useState(false)
     const [username, setUsername] = useState(user?.name || "Unknown")
@@ -22,22 +26,46 @@ export default function ProfileView({ user }: ProfileViewProps) {
     const [isPasswordModalOpen, setPasswordModalOpen] = useState(false)
     const [isDeleteModalOpen, setDeleteModalOpen] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
+    const isDirty = username !== (user?.name || "Unknown") || email !== (user?.email || "Unknown") || profileImage !== (user?.profileImage || "")
+    const navigationBlocker = useBlocker({
+        shouldBlockFn: () => isEditing && isDirty && !isSaving,
+        enableBeforeUnload: isEditing && isDirty,
+        withResolver: true,
+    })
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
+            const supportedTypes = ["image/png", "image/jpeg", "image/gif"]
+            if (!supportedTypes.includes(file.type)) {
+                notify({ tone: "error", title: "Unsupported image", message: "Choose a PNG, JPG, or GIF profile picture." })
+                e.target.value = ""
+                return
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                notify({ tone: "error", title: "Image is too large", message: "Choose a profile picture smaller than 5 MB." })
+                e.target.value = ""
+                return
+            }
             const reader = new FileReader()
             reader.readAsDataURL(file)
             reader.onloadend = () => setProfileImage(reader.result as string)
+            reader.onerror = () => notify({ tone: "error", title: "Image couldn’t be read", message: "Choose another file and try again." })
         }
     }
 
     const handleSave = async () => {
         if (!isEditing) { setIsEditing(true); return }
+        if (isSaving) return
         setIsSaving(true)
         const success = await updateProfile({ name: username, email, profileImage })
         setIsSaving(false)
-        if (success) setIsEditing(false)
+        if (success) {
+            notify({ tone: "success", title: "Profile updated", message: "Your personal information was saved successfully." })
+            setIsEditing(false)
+        } else {
+            notify({ tone: "error", title: "Profile wasn’t updated", message: useAuthStore.getState().error ?? "Please review your information and try again." })
+        }
     }
 
     const accountCreated = user?.createdAt
@@ -46,7 +74,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
 
     return (
         <>
-            <div className="relative z-10 w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8 mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="relative z-10 mx-auto grid w-full max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
 
                 {/* Personal Info */}
                 <div className="lg:col-span-2">
@@ -203,6 +231,15 @@ export default function ProfileView({ user }: ProfileViewProps) {
                     onConfirm={() => setDeleteModalOpen(false)}
                 />
             )}
+            <ActionConfirmModal
+                isOpen={navigationBlocker.status === "blocked"}
+                onClose={() => navigationBlocker.reset?.()}
+                onConfirm={() => navigationBlocker.proceed?.()}
+                title="Discard unsaved changes?"
+                description="Your profile edits have not been saved. Leaving now will discard them."
+                confirmText="Discard and leave"
+                variant="warning"
+            />
         </>
     )
 }

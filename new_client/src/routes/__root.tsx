@@ -4,6 +4,7 @@ import AnimatedBackground from "../components/Common/AnimatedBackground";
 
 import { useAuthStore } from "../store/authStore";
 import Navigation from "../components/Common/Navigation";
+import NotificationCenter from "../components/Common/NotificationCenter";
 
 export const Route = createRootRoute({
     component: RootLayout
@@ -29,9 +30,10 @@ function RootLayout() {
             <AnimatedBackground />
             
             {isAuthenticated && <Navigation />}
+            <NotificationCenter />
 
             {/* Shift content to the right if Sidebar is rendered */}
-            <main className={`flex-1 min-w-0 overflow-x-hidden transition-all ${isAuthenticated ? "pb-20 lg:ml-64 lg:pb-0" : ""}`}>
+            <main className={`min-w-0 flex-1 overflow-x-hidden transition-all ${isAuthenticated ? "pt-16 lg:ml-64 lg:pt-0" : ""}`}>
                 <Outlet />
             </main>
         </div>

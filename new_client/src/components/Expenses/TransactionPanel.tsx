@@ -13,6 +13,7 @@ import { type ExpenseFormData } from "../../types/expense.types"
 import { TransactionType, RecurringFrequency, type Expense } from "../../types"
 import { formatCurrency } from "../../utils/formatUtils"
 import { motion, AnimatePresence } from "framer-motion"
+import { useNotificationStore } from "../../store/notificationStore"
 
 const FREQUENCY_OPTIONS = [
     { label: "Daily",   value: RecurringFrequency.DAILY   },
@@ -45,6 +46,7 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
   const isEdit = !!transaction
   const isIncome = type === TransactionType.INCOME
   const { createExpense, updateExpense, isLoading, error } = useExpenseStore()
+  const notify = useNotificationStore((state) => state.notify)
 
   // Tag input handlers
   const addTag = (raw: string) => {
@@ -68,6 +70,7 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
   const removeTag = (t: string) => setTags(prev => prev.filter(x => x !== t))
 
   const handleSave = async () => {
+    if (isLoading) return
     setLocalError("")
     if (!description || !amount || !category || !date) {
       setLocalError("Please fill in all required fields.")
@@ -87,10 +90,22 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
 
     if (isEdit) {
       await updateExpense(transaction._id, expenseData)
-      if (!useExpenseStore.getState().error) onClose()
+      const saveError = useExpenseStore.getState().error
+      if (!saveError) {
+        notify({ tone: "success", title: "Transaction updated", message: `${description} now reflects your latest changes.` })
+        onClose()
+      } else {
+        notify({ tone: "error", title: "Transaction wasn’t updated", message: saveError })
+      }
     } else {
       await createExpense(expenseData)
-      if (!useExpenseStore.getState().error) onClose()
+      const saveError = useExpenseStore.getState().error
+      if (!saveError) {
+        notify({ tone: "success", title: "Transaction added", message: `${description} was added to your records.` })
+        onClose()
+      } else {
+        notify({ tone: "error", title: "Transaction wasn’t added", message: saveError })
+      }
     }
   }
 
@@ -105,7 +120,7 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
         <h2 id="transaction-panel-title" className="text-lg font-bold text-slate-800 dark:text-white">
           {isEdit ? "Transaction Details" : "New Transaction"}
         </h2>
-        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+        <Button aria-label="Close transaction panel" variant="ghost" size="icon" onClick={onClose} className="rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
           <X size={18} strokeWidth={2.5} />
         </Button>
       </div>
@@ -135,7 +150,7 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
         )}
 
         {localError && (
-          <div className="mb-6 rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50/90 dark:bg-red-950/80 px-3 py-2.5 text-[13px] font-medium text-red-600 dark:text-red-300 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+          <div id="transaction-local-error" role="alert" className="mb-6 rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50/90 dark:bg-red-950/80 px-3 py-2.5 text-[13px] font-medium text-red-600 dark:text-red-300 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
             {localError}
           </div>
         )}
@@ -174,6 +189,8 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
               placeholder={type === TransactionType.INCOME ? "E.g. Monthly Salary, Freelance" : "E.g. Figma, Uber, Starbucks"}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              aria-invalid={!!localError}
+              aria-describedby={localError ? "transaction-local-error" : error ? "transaction-store-error" : undefined}
             />
           </div>
 
@@ -188,6 +205,8 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 className="pl-8 font-bold"
+                aria-invalid={!!localError}
+                aria-describedby={localError ? "transaction-local-error" : error ? "transaction-store-error" : undefined}
               />
             </div>
           </div>
@@ -296,7 +315,7 @@ export default function TransactionPanel({ transaction, onClose, onDelete }: Tra
           </div>
 
           {error && (
-            <p className="text-xs font-bold text-red-500 mt-2 px-1">{error}</p>
+            <p id="transaction-store-error" role="alert" className="text-xs font-bold text-red-500 mt-2 px-1">{error}</p>
           )}
         </form>
       </div>

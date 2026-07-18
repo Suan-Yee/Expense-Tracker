@@ -1,8 +1,8 @@
-export default function Loader({ text = "Loading..." }: { text?: string }) {
+export default function Loader({ text = "Loading your data..." }: { text?: string }) {
     return (
-        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4 w-full">
-            <div className="size-10 animate-spin rounded-full border-4 border-emerald-200/60 border-t-emerald-500 shadow-sm" />
-            <p className="text-[14px] font-bold tracking-tight text-emerald-700/80 animate-pulse">{text}</p>
+        <div className="flex min-h-64 w-full flex-col items-center justify-center gap-4" role="status" aria-live="polite">
+            <div className="size-9 animate-spin rounded-full border-[3px] border-emerald-200 border-t-emerald-700 dark:border-emerald-900 dark:border-t-emerald-300" aria-hidden="true" />
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{text}</p>
         </div>
     );
 }

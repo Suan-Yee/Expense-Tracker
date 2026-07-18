@@ -5,6 +5,8 @@ import type { Goal, GoalFormData, GoalUpdateData } from "../../types/goal.types"
 import CustomSelect from "../Expenses/CustomSelect";
 import CustomDatePicker from "../Expenses/CustomDatePicker";
 import { useModalAccessibility } from "../../hooks/useModalAccessibility";
+import { useNotificationStore } from "../../store/notificationStore";
+import { useGoalStore } from "../../store/goalStore";
 
 const CATEGORIES = [
     { label: "Travel",     value: "travel" },
@@ -46,10 +48,12 @@ export default function GoalFormModal({
     const [recordInExpense, setRecordInExpense] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const notify = useNotificationStore((state) => state.notify);
     const panelRef = useModalAccessibility<HTMLDivElement>(isOpen, onClose);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmitting) return;
         if (!title.trim() || !targetAmount) {
             setError("Title and target amount are required");
             return;
@@ -84,9 +88,20 @@ export default function GoalFormModal({
 
         setIsSubmitting(false);
         if (success) {
+            notify({
+                tone: "success",
+                title: editingGoal ? "Goal updated" : "Goal created",
+                message: `${title.trim()} is set to a target of $${Number(targetAmount).toLocaleString()}.`,
+            });
             onClose();
         } else {
-            setError("Failed to save goal. Please check details.");
+            const saveError = useGoalStore.getState().error ?? "Please check the goal details and try again.";
+            setError(saveError);
+            notify({
+                tone: "error",
+                title: editingGoal ? "Goal wasn’t updated" : "Goal wasn’t created",
+                message: saveError,
+            });
         }
     };
 
@@ -96,10 +111,7 @@ export default function GoalFormModal({
                 <>
                     {/* Backdrop matching BudgetForm style */}
                     <motion.div
-                        ref={panelRef}
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="goal-form-title"
+                        aria-hidden="true"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -109,11 +121,15 @@ export default function GoalFormModal({
 
                     {/* Right Drawer Panel matching BudgetForm style */}
                     <motion.div
+                        ref={panelRef}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="goal-form-title"
                         initial={{ opacity: 0, x: 40 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 40 }}
                         transition={{ type: "spring", bounce: 0, duration: 0.35 }}
-                        className="fixed right-0 top-0 z-50 h-full w-[380px] sm:w-[420px] flex flex-col bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-l border-white/60 dark:border-slate-800 shadow-2xl shadow-slate-900/10"
+                        className="fixed right-0 top-0 z-50 flex h-full w-full max-w-[420px] flex-col border-l border-white/60 bg-white/90 shadow-2xl shadow-slate-900/10 backdrop-blur-2xl dark:border-slate-800 dark:bg-slate-900/90"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 pt-7 pb-5 border-b border-slate-100/80 dark:border-slate-800">
@@ -126,7 +142,9 @@ export default function GoalFormModal({
                                 </p>
                             </div>
                             <button
-                                onClick={onClose}
+                                type="button"
+                                aria-label="Close goal form"
+                                onClick={() => { if (!isSubmitting) onClose(); }}
                                 className="flex size-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 transition-colors"
                             >
                                 <X size={16} strokeWidth={2.5} />
@@ -137,6 +155,8 @@ export default function GoalFormModal({
                         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-y-auto px-6 py-6 gap-5">
                             {error && (
                                 <motion.div
+                                    id="goal-form-error"
+                                    role="alert"
                                     initial={{ opacity: 0, y: -4 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     className="rounded-xl bg-red-50 dark:bg-red-950/80 border border-red-200 dark:border-red-800/60 p-3 text-xs font-bold text-red-600 dark:text-red-300"
@@ -147,29 +167,33 @@ export default function GoalFormModal({
 
                             {/* Title */}
                             <div className="space-y-2">
-                                <label className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                <label htmlFor="goal-title" className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     <Target size={11} strokeWidth={2.5} />
                                     Goal Title *
                                 </label>
                                 <input
+                                    id="goal-title"
                                     type="text"
                                     required
                                     placeholder="e.g. New Mac Studio or Hawaii Trip"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     className="w-full rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 px-3.5 py-3 text-[14px] font-bold text-slate-800 dark:text-white placeholder-slate-400 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                    aria-invalid={!!error}
+                                    aria-describedby={error ? "goal-form-error" : undefined}
                                 />
                             </div>
 
                             {/* Target Amount */}
                             <div className="space-y-2">
-                                <label className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                <label htmlFor="goal-target" className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                     <DollarSign size={11} strokeWidth={2.5} />
                                     Target Amount ($) *
                                 </label>
                                 <div className="relative">
                                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[15px]">$</span>
                                     <input
+                                        id="goal-target"
                                         type="number"
                                         required
                                         step="any"
@@ -178,6 +202,8 @@ export default function GoalFormModal({
                                         value={targetAmount}
                                         onChange={(e) => setTargetAmount(e.target.value)}
                                         className="w-full rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 pl-8 pr-4 py-3 text-[15px] font-bold text-slate-800 dark:text-white placeholder-slate-400 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                        aria-invalid={!!error}
+                                        aria-describedby={error ? "goal-form-error" : undefined}
                                     />
                                 </div>
                             </div>
@@ -266,14 +292,15 @@ export default function GoalFormModal({
                             </div>
 
                             {!editingGoal && Number(currentAmount) > 0 && (
-                                <label className="flex items-center gap-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer pt-1">
+                                <label className="flex items-start gap-2.5 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs font-bold text-slate-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-slate-200 cursor-pointer">
                                     <input
                                         type="checkbox"
                                         checked={recordInExpense}
                                         onChange={(e) => setRecordInExpense(e.target.checked)}
                                         className="size-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                        aria-describedby="initial-saving-effect"
                                     />
-                                    Record initial deposit (${currentAmount}) in expense tracker history
+                                    <span>Record initial deposit (${currentAmount}) in transaction history<span id="initial-saving-effect" className="mt-1 block font-normal leading-5 text-slate-500 dark:text-slate-400">This creates a savings transaction and changes the totals shown on your dashboard and analytics.</span></span>
                                 </label>
                             )}
 
