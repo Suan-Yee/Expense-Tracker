@@ -102,6 +102,20 @@
   mix-blend-mode: screen;
 }
 
+.moss-premium-grid {
+  background-image:
+    linear-gradient(90deg, var(--moss-grid-line) 1px, transparent 1px),
+    linear-gradient(180deg, var(--moss-grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.16;
+  -webkit-mask-image: radial-gradient(ellipse 92% 82% at 50% 42%, #000 30%, rgb(0 0 0 / 0.42) 76%, transparent 100%);
+  mask-image: radial-gradient(ellipse 92% 82% at 50% 42%, #000 30%, rgb(0 0 0 / 0.42) 76%, transparent 100%);
+}
+
+.dark .moss-premium-grid {
+  opacity: 0.12;
+}
+
 /* Applied briefly only while switching themes. Keeping this opt-in prevents
    normal hover, modal and page animations from becoming sluggish. */
 html.theme-transition,
@@ -144,6 +158,44 @@ html.theme-transition canvas {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes auth-spore-float {
+  0%, 100% { transform: translate3d(var(--auth-parallax-x, 0px), var(--auth-parallax-y, 0px), 0) scale(0.82); }
+  48% { transform: translate3d(calc(var(--spore-x) + var(--auth-parallax-x, 0px)), calc(var(--spore-y) + var(--auth-parallax-y, 0px)), 0) scale(1.16); }
+  72% { transform: translate3d(calc(var(--spore-return-x) + var(--auth-parallax-x, 0px)), calc(var(--spore-return-y) + var(--auth-parallax-y, 0px)), 0) scale(0.94); }
+}
+
+@keyframes auth-forest-sheen {
+  0%, 100% { transform: translate3d(calc(-22% + var(--auth-parallax-x, 0px)), var(--auth-parallax-y, 0px), 0) rotate(-8deg); opacity: 0.12; }
+  50% { transform: translate3d(calc(28% + var(--auth-parallax-x, 0px)), var(--auth-parallax-y, 0px), 0) rotate(-8deg); opacity: 0.3; }
+}
+
+@keyframes auth-spore-calm {
+  0%, 100% { transform: translate3d(var(--auth-parallax-x, 0px), var(--auth-parallax-y, 0px), 0) scale(0.9); }
+  50% { transform: translate3d(calc(3px + var(--auth-parallax-x, 0px)), calc(-5px + var(--auth-parallax-y, 0px)), 0) scale(1); }
+}
+
+.auth-forest-spore {
+  animation: auth-spore-float var(--spore-duration) ease-in-out var(--spore-delay) infinite;
+  box-shadow: 0 0 10px rgb(52 211 153 / 0.32);
+  will-change: transform;
+}
+
+.auth-forest-sheen {
+  animation: auth-forest-sheen 18s ease-in-out infinite;
+  background: linear-gradient(105deg, transparent 38%, rgb(110 231 183 / 0.07) 49%, transparent 60%);
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-forest-spore {
+    animation: auth-spore-calm 36s ease-in-out var(--spore-delay) infinite !important;
+  }
+
+  .auth-forest-sheen {
+    animation: auth-forest-sheen 48s ease-in-out infinite !important;
+  }
 }
 
 @layer utilities {

@@ -22,6 +22,9 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notify: (notification) => {
     const id = ++notificationId;
     set((state) => ({ notifications: [...state.notifications, { ...notification, id }].slice(-3) }));
+    if (notification.tone === "success") {
+      window.dispatchEvent(new CustomEvent("expense-tracker:ambient-bloom"));
+    }
     window.setTimeout(() => get().dismiss(id), 4500);
   },
   dismiss: (id) => set((state) => ({

@@ -5,6 +5,7 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
+      data-particle-shield="true"
       className={cn(
         "rounded-[18px] border border-slate-200 bg-white shadow-[0_1px_2px_rgba(18,45,31,0.05),0_12px_30px_rgba(18,45,31,0.05)] dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20",
         className

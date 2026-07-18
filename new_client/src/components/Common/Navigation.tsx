@@ -2,10 +2,11 @@ import { Link, useNavigate } from "@tanstack/react-router"
 import { useAuthStore } from "../../store/authStore"
 import {
     LayoutDashboard, ReceiptText, PieChart,
-    Target, BarChart3, Settings, LogOut, Wallet, ChevronRight, Moon, Sun
+    Target, BarChart3, Settings, LogOut, ChevronRight, Moon, Sun
 } from "lucide-react"
 import { Button } from "../ui/button"
 import { useThemeStore } from "../../store/themeStore"
+import BrandMark from "./BrandMark"
 
 const navLinks = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -40,9 +41,7 @@ export default function Navigation() {
             <aside className="flex h-full w-full flex-col px-5 py-7">
                 {/* Logo */}
                 <div className="mb-9 flex items-center gap-3 px-1">
-                    <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm dark:bg-emerald-400 dark:text-emerald-950">
-                        <Wallet size={19} strokeWidth={2.5} />
-                    </div>
+                    <BrandMark className="size-10" />
                     <div>
                         <span className="block text-[15px] font-bold tracking-tight text-slate-900 dark:text-white">Expense Tracker</span>
                         <span className="block text-[11px] text-slate-400">Personal finance</span>
@@ -116,7 +115,7 @@ export default function Navigation() {
 
         <header className="fixed inset-x-0 top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur-lg dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
             <div className="flex items-center gap-2.5">
-                <div className="grid size-9 place-items-center rounded-xl bg-emerald-700 text-white dark:bg-emerald-400 dark:text-emerald-950"><Wallet size={17} /></div>
+                <BrandMark className="size-9" />
                 <span className="text-sm font-bold text-slate-900 dark:text-white">Expense Tracker</span>
             </div>
             <div className="flex items-center gap-1">

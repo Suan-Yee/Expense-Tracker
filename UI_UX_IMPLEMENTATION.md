@@ -27,6 +27,14 @@ Light-theme forest refinement:
 - Preserved the original full-screen distribution, particle density, bloom, shimmer, drift, and pointer response in both themes.
 - Restored the client-supplied `AnimatedBackground` component verbatim.
 - Removed the dark-theme fractal-noise layer that made the background appear blurred while preserving its gradient and particles.
+- Upgraded the moss engine with three crisp depth layers, loose organic clusters, cursor wake and recovery, seamless light/dark color morphing, content-aware particle attenuation, and success-event blooms.
+- Added a gentle reduced-motion drift, hidden-tab pausing, responsive density, and device-pixel-ratio limits to keep the richer animation accessible and efficient without freezing its signature particles.
+- Cleared cancelled animation-frame state during effect cleanup so React development-mode remounts reliably restart particle motion.
+- Restored mouse and pen interaction in reduced-motion environments with a gentler wake, plus persistent nearby displacement while the pointer rests over the particle field.
+- Added an original generated landscape "living financial forest" authentication hero composed for the panel ratio, with a quiet text-safe area, slow parallax, layered light movement, and floating emerald spores.
+- Added a 3840 × 2880 high-detail hero variant for every desktop display and moved animation off the base artwork onto the spores and sheen, preventing fractional transform resampling from softening the moss.
+- Replaced the generic wallet brand icon with the exact original “Moss Ledger” spiral-and-leaf artwork across desktop navigation, mobile navigation, authentication, Settings, and the browser favicon.
+- Normalized the logo canvas for true centering and added a dedicated high-contrast mint favicon for dark browser chrome.
 
 This document is the source of truth for the Expense Tracker interface refinement. Work is implemented in the order below. Update the status and verification notes whenever an item changes.
 

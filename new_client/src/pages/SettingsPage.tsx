@@ -1,8 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Check, ChevronRight, CircleDollarSign, Globe2, LogOut, Moon, ShieldCheck, Sun, UserRound, Wallet } from "lucide-react";
+import { Check, ChevronRight, CircleDollarSign, Globe2, LogOut, Moon, ShieldCheck, Sun, UserRound } from "lucide-react";
 import { useThemeStore } from "../store/themeStore";
 import { useAuthStore } from "../store/authStore";
 import PageHeader from "../components/Common/PageHeader";
+import BrandMark from "../components/Common/BrandMark";
 
 export default function SettingsPage() {
     const { theme, setTheme } = useThemeStore();
@@ -53,7 +54,7 @@ export default function SettingsPage() {
                     </section>
 
                     <section className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-5 dark:border-emerald-500/20 dark:bg-emerald-500/8">
-                        <div className="flex items-start gap-3"><div className="grid size-9 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white"><Wallet size={17} /></div><div><h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Expense Tracker</h2><p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">Your theme preference is stored on this device. Financial records remain connected to your secured account.</p><p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-emerald-700/70 dark:text-emerald-300/70">Version 1.0</p></div></div>
+                        <div className="flex items-start gap-3"><BrandMark className="size-9" /><div><h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Expense Tracker</h2><p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">Your theme preference is stored on this device. Financial records remain connected to your secured account.</p><p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-emerald-700/70 dark:text-emerald-300/70">Version 1.0</p></div></div>
                     </section>
 
                     <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-bold text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/25 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/15"><LogOut size={15} />Sign out of this device</button>
